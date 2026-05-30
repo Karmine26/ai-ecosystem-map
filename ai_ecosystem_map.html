@@ -1,0 +1,1701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI Compute Ecosystem Map — OpenAI vs Anthropic</title>
+<style>
+  :root{
+    --bg:#0b0e14;
+    --panel:#121724;
+    --panel-2:#171d2d;
+    --line:#232c40;
+    --txt:#e6ebf4;
+    --muted:#8a95ad;
+    --openai:#10a37f;
+    --openai-soft:rgba(16,163,127,.14);
+    --anthropic:#d97757;
+    --anthropic-soft:rgba(217,119,87,.14);
+    --both:#a78bfa;
+    --both-soft:rgba(167,139,250,.16);
+    --chip:#1c2333;
+    --chip-hover:#27314a;
+    --accent:#5b9dff;
+    --shadow:0 10px 30px rgba(0,0,0,.45);
+    --radius:14px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:radial-gradient(1200px 700px at 80% -10%, #14253b 0%, var(--bg) 55%) fixed;
+    color:var(--txt);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    line-height:1.45;
+  }
+  header.top{
+    padding:28px 22px 14px;
+    max-width:1280px;margin:0 auto;
+  }
+  h1{font-size:26px;margin:0 0 6px;letter-spacing:-.3px}
+  .sub{color:var(--muted);font-size:14px;max-width:820px}
+  .legend{display:flex;flex-wrap:wrap;gap:14px;margin:16px 0 4px;align-items:center}
+  .legend .key{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--muted)}
+  .dot{width:11px;height:11px;border-radius:50%}
+  .dot.o{background:var(--openai)}
+  .dot.a{background:var(--anthropic)}
+  .dot.b{background:var(--both)}
+  .dot.p{background:#566;border:1px solid #788}
+
+  .controls{
+    max-width:1280px;margin:10px auto 0;padding:0 22px;
+    display:flex;flex-wrap:wrap;gap:10px;align-items:center;
+  }
+  .search{
+    flex:1;min-width:220px;
+    background:var(--panel);border:1px solid var(--line);border-radius:10px;
+    padding:10px 14px;color:var(--txt);font-size:14px;outline:none;
+  }
+  .search:focus{border-color:var(--accent)}
+  .filters{display:flex;gap:8px;flex-wrap:wrap}
+  .pill{
+    background:var(--panel);border:1px solid var(--line);color:var(--muted);
+    padding:8px 13px;border-radius:999px;font-size:12.5px;cursor:pointer;user-select:none;
+    transition:.15s;
+  }
+  .pill:hover{color:var(--txt);border-color:#3a465f}
+  .pill.active{background:var(--accent);border-color:var(--accent);color:#06101f;font-weight:600}
+  .pill.o.active{background:var(--openai);border-color:var(--openai);color:#03150f}
+  .pill.a.active{background:var(--anthropic);border-color:var(--anthropic);color:#1c0a04}
+  .pill.b.active{background:var(--both);border-color:var(--both);color:#140a2b}
+
+  main{max-width:1280px;margin:18px auto 80px;padding:0 22px}
+
+  .layer{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    margin-bottom:16px;
+    overflow:hidden;
+  }
+  .layer-head{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:14px 18px;cursor:pointer;
+    background:linear-gradient(90deg, var(--panel-2), transparent);
+  }
+  .layer-head h2{font-size:15.5px;margin:0;display:flex;align-items:center;gap:10px}
+  .layer-head .badge{
+    font-size:11px;color:var(--muted);background:var(--chip);
+    border:1px solid var(--line);padding:3px 9px;border-radius:999px;
+  }
+  .layer-desc{color:var(--muted);font-size:12.5px;font-weight:400;margin-left:4px}
+  .chev{color:var(--muted);transition:.2s;font-size:13px}
+  .layer.collapsed .chev{transform:rotate(-90deg)}
+  .layer.collapsed .chips{display:none}
+  .chips{
+    display:flex;flex-wrap:wrap;gap:9px;padding:6px 18px 18px;
+  }
+  .chip{
+    display:flex;flex-direction:column;gap:2px;
+    background:var(--chip);border:1px solid var(--line);
+    border-left:3px solid var(--line);
+    border-radius:10px;padding:9px 12px;min-width:150px;max-width:230px;
+    cursor:pointer;transition:.14s;position:relative;
+  }
+  .chip:hover{background:var(--chip-hover);transform:translateY(-2px);box-shadow:var(--shadow)}
+  .chip.eco-openai{border-left-color:var(--openai)}
+  .chip.eco-anthropic{border-left-color:var(--anthropic)}
+  .chip.eco-both{border-left-color:var(--both)}
+  .chip .name{font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:7px}
+  .chip .ticker{
+    font-size:11px;font-weight:700;letter-spacing:.4px;
+    color:var(--accent);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  .chip .ticker.priv{color:var(--muted);font-weight:600}
+  .chip .role{font-size:11.5px;color:var(--muted);line-height:1.35}
+  .chip .ecotag{
+    position:absolute;top:8px;right:9px;width:9px;height:9px;border-radius:50%;
+  }
+  .chip.eco-openai .ecotag{background:var(--openai)}
+  .chip.eco-anthropic .ecotag{background:var(--anthropic)}
+  .chip.eco-both .ecotag{background:var(--both)}
+  .chip.hidden{display:none}
+  .layer.empty{display:none}
+
+  .overlap-note{
+    background:var(--both-soft);border:1px solid var(--both);
+    border-radius:var(--radius);padding:14px 18px;margin-bottom:16px;font-size:13px;
+  }
+  .overlap-note b{color:#c9b8ff}
+
+  /* Modal */
+  .overlay{
+    position:fixed;inset:0;background:rgba(4,7,12,.72);backdrop-filter:blur(4px);
+    display:none;align-items:center;justify-content:center;z-index:50;padding:18px;
+  }
+  .overlay.open{display:flex}
+  .modal{
+    background:var(--panel);border:1px solid var(--line);border-radius:16px;
+    width:min(680px,96vw);max-height:92vh;overflow:auto;box-shadow:var(--shadow);
+  }
+  .modal-head{
+    display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
+    padding:18px 20px 12px;border-bottom:1px solid var(--line);position:sticky;top:0;
+    background:var(--panel);
+  }
+  .modal-head h3{margin:0;font-size:19px}
+  .modal-head .mt{font-family:ui-monospace,Menlo,monospace;color:var(--accent);font-size:13px;margin-top:4px}
+  .modal-head .mrole{color:var(--muted);font-size:12.5px;margin-top:6px;max-width:440px}
+  .close{
+    background:var(--chip);border:1px solid var(--line);color:var(--txt);
+    width:34px;height:34px;border-radius:9px;cursor:pointer;font-size:18px;flex:0 0 auto;
+  }
+  .close:hover{background:var(--chip-hover)}
+  .modal-body{padding:14px 16px 18px}
+  .tv-wrap{width:100%;min-height:420px}
+  .priv-box{
+    text-align:center;color:var(--muted);padding:40px 20px;font-size:14px;
+  }
+  .ext-links{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;padding:0 4px}
+  .ext-links a{
+    color:var(--accent);text-decoration:none;font-size:12.5px;
+    border:1px solid var(--line);padding:7px 12px;border-radius:8px;background:var(--chip);
+  }
+  .ext-links a:hover{background:var(--chip-hover)}
+  .ecobadge{display:inline-block;font-size:10.5px;padding:2px 8px;border-radius:999px;margin-top:8px;font-weight:600}
+  .ecobadge.openai{background:var(--openai-soft);color:#3fdcb4;border:1px solid var(--openai)}
+  .ecobadge.anthropic{background:var(--anthropic-soft);color:#f0a98c;border:1px solid var(--anthropic)}
+  .ecobadge.both{background:var(--both-soft);color:#c9b8ff;border:1px solid var(--both)}
+  footer{max-width:1280px;margin:0 auto;padding:0 22px 50px;color:var(--muted);font-size:11.5px}
+  a.inline{color:var(--accent)}
+  .count{color:var(--muted);font-size:12px;margin-left:auto}
+
+  /* View tabs */
+  .tabs{max-width:1280px;margin:16px auto 0;padding:0 22px;display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{
+    background:var(--panel);border:1px solid var(--line);color:var(--muted);
+    padding:9px 16px;border-radius:10px 10px 0 0;font-size:13px;cursor:pointer;
+    border-bottom:none;font-weight:600;transition:.15s;white-space:nowrap;flex:0 0 auto;
+  }
+  .tab:hover{color:var(--txt)}
+  .tab.active{background:var(--panel-2);color:var(--txt);border-color:var(--accent);border-bottom:none}
+  .view{display:none}
+  .view.active{display:block}
+
+  /* Flow diagram */
+  .flow-wrap{
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:10px;overflow-x:auto;
+  }
+  .flow-legend{display:flex;gap:18px;flex-wrap:wrap;padding:10px 8px 4px;font-size:12px;color:var(--muted)}
+  .flow-legend span{display:flex;align-items:center;gap:7px}
+  .flow-legend i{width:22px;height:3px;border-radius:2px;display:inline-block}
+  #flowSvg{display:block;min-width:900px}
+  .fnode rect{transition:.15s;cursor:pointer}
+  .fnode:hover rect{filter:brightness(1.25)}
+  .fnode text{font-size:12px;font-weight:600;pointer-events:none}
+  .fnode .ftk{font-size:9.5px;font-family:ui-monospace,Menlo,monospace;opacity:.85}
+  .flow-col-label{fill:var(--muted);font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+  .flink{fill:none;opacity:.5;transition:.15s}
+  .flink:hover{opacity:1}
+
+  /* Rankings */
+  .rank-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:760px){.rank-grid{grid-template-columns:1fr}}
+  .rank-col{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+  .rank-col h3{margin:0;padding:14px 18px;font-size:15px;display:flex;align-items:center;gap:9px;border-bottom:1px solid var(--line)}
+  .rank-col.o h3{background:var(--openai-soft)}
+  .rank-col.a h3{background:var(--anthropic-soft)}
+  .rank-item{display:flex;gap:12px;padding:12px 18px;border-bottom:1px solid var(--line);cursor:pointer;transition:.12s}
+  .rank-item:last-child{border-bottom:none}
+  .rank-item:hover{background:var(--chip-hover)}
+  .rank-num{font-size:18px;font-weight:800;color:var(--muted);min-width:24px;font-family:ui-monospace,Menlo,monospace}
+  .rank-col.o .rank-num{color:var(--openai)}
+  .rank-col.a .rank-num{color:var(--anthropic)}
+  .rank-body .rn{font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .rank-body .rtk{font-size:10.5px;font-family:ui-monospace,Menlo,monospace;color:var(--accent);background:var(--chip);padding:1px 7px;border-radius:5px}
+  .rank-body .rtk.priv{color:var(--muted)}
+  .rank-body .rwhy{font-size:12px;color:var(--muted);margin-top:3px}
+
+  /* Modal sub-tabs + conviction */
+  .msub{display:flex;gap:4px;padding:0 16px;border-bottom:1px solid var(--line);background:var(--panel);position:sticky;top:0;z-index:2;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .msub::-webkit-scrollbar{display:none}
+  .msub-tab{padding:10px 14px;font-size:12.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;font-weight:600;white-space:nowrap;flex:0 0 auto}
+  .msub-tab:hover{color:var(--txt)}
+  .msub-tab.active{color:var(--txt);border-bottom-color:var(--accent)}
+  #m-conviction{padding:0 20px}
+  .conv-card{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:12px 0 4px}
+  .conv-top{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .conv-score{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:78px;height:78px;border-radius:14px;font-weight:800}
+  .conv-score .num{font-size:30px;line-height:1}
+  .conv-score .lbl{font-size:9px;letter-spacing:.5px;opacity:.85;margin-top:2px;text-transform:uppercase}
+  .conv-tier{font-size:12px;font-weight:700;padding:4px 11px;border-radius:999px}
+  .tier-Highest{background:rgba(63,220,180,.16);color:#3fdcb4;border:1px solid #2bbf9a}
+  .tier-High{background:rgba(91,157,255,.16);color:#7fb3ff;border:1px solid #4f86d6}
+  .tier-Speculative{background:rgba(241,169,140,.16);color:#f0a98c;border:1px solid #d97757}
+  .conv-bars{flex:1;min-width:220px;display:grid;grid-template-columns:auto 1fr auto;gap:5px 9px;align-items:center}
+  .conv-bars .bk{font-size:11px;color:var(--muted)}
+  .conv-bars .bt{height:7px;border-radius:4px;background:var(--chip);overflow:hidden}
+  .conv-bars .bf{height:100%;border-radius:4px;background:linear-gradient(90deg,#4f86d6,#3fdcb4)}
+  .conv-bars .bv{font-size:11px;color:var(--txt);font-weight:600;font-family:ui-monospace,Menlo,monospace}
+  .thesis-block{padding:6px 4px}
+  .thesis-block h4{margin:14px 0 5px;font-size:12px;letter-spacing:.4px;text-transform:uppercase;color:var(--accent)}
+  .thesis-block h4.risk{color:#f0a98c}
+  .thesis-block h4.edge{color:#3fdcb4}
+  .thesis-block p{margin:0;font-size:13.5px;line-height:1.55;color:var(--txt)}
+  .no-thesis{padding:26px 14px;color:var(--muted);font-size:13px;text-align:center}
+
+  /* Signals (multi-timeframe gauges) */
+  .sig-note{font-size:12px;color:var(--muted);padding:4px 4px 10px;line-height:1.5}
+  .sig-note b{color:var(--txt)}
+  .sig-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  @media(max-width:620px){.sig-grid{grid-template-columns:1fr}}
+  .sig-cell{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--panel-2)}
+  .sig-cell .sig-h{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);padding:8px 10px 0;text-align:center}
+
+  /* Entry / Exit playbook */
+  .play{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-top:12px}
+  .play .ph{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--accent);margin:0 0 8px;display:flex;align-items:center;gap:8px}
+  .play .ptier{font-size:10.5px;padding:2px 9px;border-radius:999px}
+  .play-row{display:flex;gap:10px;margin:9px 0;align-items:flex-start}
+  .play-row .pk{flex:0 0 78px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;padding-top:1px}
+  .play-row .pk.enter{color:#3fdcb4}
+  .play-row .pk.exit{color:#f0a98c}
+  .play-row .pk.size{color:#7fb3ff}
+  .play-row .pv{flex:1;font-size:13px;line-height:1.5;color:var(--txt)}
+  .play-tac{margin-top:11px;padding-top:11px;border-top:1px solid var(--line);font-size:13px;line-height:1.5}
+  .play-tac b{color:var(--accent)}
+  .play-warn{margin-top:10px;font-size:11px;color:#f0a98c;line-height:1.5}
+  .pb{margin-top:12px}
+  .pb-head{display:flex;flex-wrap:wrap;align-items:center;gap:9px;margin-bottom:4px}
+  .pb-arch{font-size:12px;font-weight:800;padding:5px 12px;border-radius:999px}
+  .pb-horizon{font-size:11.5px;color:var(--muted);font-weight:600}
+  .pb-read{background:var(--panel-2);border:1px solid var(--line);border-left:3px solid #8a93a8;border-radius:10px;padding:10px 13px;font-size:13px;line-height:1.55;color:var(--txt);margin:10px 0}
+  .pb-read b{color:var(--txt)}
+  .pb-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media(max-width:620px){.pb-grid{grid-template-columns:1fr}}
+  .pb-sec{background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:11px 13px}
+  .pb-sec.buy{border-left:3px solid #3fdcb4}
+  .pb-sec.exit{border-left:3px solid #f0a98c}
+  .pb-sec-h{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;margin:0 0 8px}
+  .pb-sec.buy .pb-sec-h{color:#3fdcb4}
+  .pb-sec.exit .pb-sec-h{color:#f0a98c}
+  .pb-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px}
+  .pb-list li{font-size:12.5px;line-height:1.5;color:var(--txt);padding-left:17px;position:relative}
+  .pb-list li:before{position:absolute;left:0;font-size:9px;top:3px}
+  .pb-sec.buy .pb-list li:before{content:"\25B2";color:#3fdcb4}
+  .pb-sec.exit .pb-list li:before{content:"\25BC";color:#f0a98c}
+  .pb-line{display:flex;gap:10px;align-items:flex-start;margin-top:11px;font-size:12.5px;line-height:1.5}
+  .pb-line .pb-k{flex:0 0 78px;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;padding-top:2px}
+  .pb-line.add .pb-k{color:#7fb3ff}
+  .pb-line.stop .pb-k{color:#ffcf6b}
+  .pb-line.dont .pb-k{color:#ff8a8a}
+  .pb-line .pb-v{flex:1;color:var(--txt)}
+  .pb-maxim{margin-top:13px;font-style:italic;font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:12px;line-height:1.55}
+
+  /* Opportunities tab */
+  .opp-intro{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:16px}
+  .opp-intro h2{margin:0 0 8px;font-size:18px}
+  .opp-intro p{margin:0 0 12px;font-size:13px;color:var(--muted);line-height:1.6;max-width:920px}
+  .opp-filters{display:flex;gap:8px;flex-wrap:wrap}
+  .opill{background:var(--chip);border:1px solid var(--line);color:var(--muted);padding:7px 13px;border-radius:999px;font-size:12.5px;cursor:pointer;font-weight:600}
+  .opill:hover{color:var(--txt)}
+  .opill.active{background:var(--accent);border-color:var(--accent);color:#06101f}
+  .disclaimer{margin-top:13px;font-size:11.5px;color:#f0a98c;background:rgba(217,119,87,.10);border:1px solid rgba(217,119,87,.4);border-radius:9px;padding:9px 12px}
+  .opp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
+  .opp-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:15px 16px;cursor:pointer;transition:.14s;display:flex;flex-direction:column;gap:9px}
+  .opp-card:hover{transform:translateY(-3px);box-shadow:var(--shadow);border-color:#3a465f}
+  .opp-head{display:flex;align-items:flex-start;gap:12px}
+  .opp-head .oscore{min-width:54px;height:54px;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:800;flex:0 0 auto}
+  .opp-head .oscore .n{font-size:21px;line-height:1}
+  .opp-head .oname{font-size:15.5px;font-weight:700;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .opp-head .otk{font-size:11px;font-family:ui-monospace,Menlo,monospace;color:var(--accent);background:var(--chip);padding:1px 7px;border-radius:5px}
+  .opp-head .olayer{font-size:11px;color:var(--muted);margin-top:3px}
+  .opp-thesis{font-size:12.5px;color:var(--txt);line-height:1.5}
+  .opp-meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:auto;padding-top:4px}
+  .opp-card.hidden{display:none}
+
+  /* ---------- Mobile / small-screen ---------- */
+  @media(max-width:640px){
+    header.top{padding:18px 14px 8px}
+    h1{font-size:21px}
+    .sub{font-size:13px}
+    .legend{gap:9px 12px;margin:13px 0 2px}
+    .legend .key{font-size:12px}
+    .controls{padding:0 14px;gap:8px;margin-top:8px}
+    /* 16px input avoids iOS auto-zoom on focus */
+    .search{min-width:0;width:100%;font-size:16px;padding:11px 13px}
+    .filters{width:100%}
+    .tabs{padding:0 14px;margin-top:14px}
+    main{padding:0 14px;margin:14px auto 60px}
+    footer{padding:0 14px 40px}
+    .overlap-note{padding:12px 14px;font-size:12.5px}
+
+    .layer{margin-bottom:12px}
+    .layer-head{padding:12px 14px}
+    .layer-head h2{font-size:14px;flex-wrap:wrap;gap:4px 8px}
+    .layer-desc{font-size:11.5px;margin-left:0;flex-basis:100%}
+    .chips{padding:6px 12px 14px;gap:8px}
+    .chip{min-width:0;max-width:none;flex:1 1 calc(50% - 8px)}
+    .chip .role{font-size:11px}
+
+    /* Modal becomes a bottom sheet */
+    .overlay{padding:0;align-items:flex-end}
+    .modal{width:100vw;max-width:100vw;max-height:94vh;border-radius:16px 16px 0 0}
+    .modal-head{padding:14px 16px 10px}
+    .modal-head h3{font-size:17px}
+    .modal-head .mrole{max-width:none}
+    .modal-body{padding:12px 12px 16px}
+    .msub{padding:0 12px}
+    #m-conviction{padding:0 14px}
+    .conv-top{gap:12px}
+    .conv-bars{min-width:0}
+    .ext-links a{font-size:12px;padding:7px 11px}
+
+    /* Stack the playbook + signals + opportunities */
+    .pb-grid{grid-template-columns:1fr}
+    .pb-line .pb-k{flex-basis:72px}
+    .sig-grid{grid-template-columns:1fr}
+    .opp-grid{grid-template-columns:1fr}
+    .opp-intro{padding:14px 15px}
+    .opp-intro h2{font-size:16px}
+    .rank-grid{grid-template-columns:1fr}
+    .flow-legend{font-size:11px;gap:10px 14px}
+  }
+  /* Very narrow phones: one chip per row for readability */
+  @media(max-width:380px){
+    .chip{flex:1 1 100%}
+    h1{font-size:19px}
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>AI Compute Ecosystem Map</h1>
+  <div class="sub">OpenAI vs. Anthropic — from the model labs down through clouds, chips, memory, networking, servers, power and cooling. Click any company to pull up its ticker and a live stock chart. Purple = appears in <b>both</b> ecosystems.</div>
+  <div class="legend">
+    <span class="key"><span class="dot o"></span> OpenAI ecosystem</span>
+    <span class="key"><span class="dot a"></span> Anthropic ecosystem</span>
+    <span class="key"><span class="dot b"></span> Shared / overlap</span>
+    <span class="key"><span class="dot p"></span> Private (no ticker)</span>
+  </div>
+</header>
+
+<div class="tabs" id="tabs">
+  <div class="tab active" data-view="layers">Layered View</div>
+  <div class="tab" data-view="opp">★ Opportunities</div>
+  <div class="tab" data-view="flow">Flow Diagram</div>
+  <div class="tab" data-view="rank">Dependency Rankings</div>
+</div>
+
+<div class="controls" id="layerControls">
+  <input id="search" class="search" placeholder="Search company, ticker, or role…  (e.g. HBM, Broadcom, cooling, AVGO)" />
+  <div class="filters" id="filters">
+    <span class="pill active" data-eco="all">All</span>
+    <span class="pill o" data-eco="openai">OpenAI</span>
+    <span class="pill a" data-eco="anthropic">Anthropic</span>
+    <span class="pill b" data-eco="both">Overlap</span>
+    <span class="pill" data-eco="public">Public only</span>
+  </div>
+</div>
+
+<main>
+  <section class="view active" id="layersView">
+    <div class="overlap-note">
+      <b>The shared backbone:</b> Both labs ultimately ride the same physical supply chain — <b>NVIDIA</b>, <b>Broadcom</b>, <b>TSMC</b>, <b>SK hynix / Micron / Samsung</b> (HBM), and the same power/cooling vendors (<b>Vertiv, Schneider, Eaton</b>). The real divergence is at the top: OpenAI = Microsoft + Oracle/Stargate + AMD; Anthropic = AWS Trainium + Google TPUs.
+    </div>
+    <div id="app"><!-- layers injected here --></div>
+  </section>
+
+  <section class="view" id="flowView">
+    <div class="flow-legend">
+      <span><i style="background:#10a37f"></i> OpenAI path</span>
+      <span><i style="background:#d97757"></i> Anthropic path</span>
+      <span><i style="background:#a78bfa"></i> Shared dependency</span>
+      <span style="opacity:.7">Click any node for live stock</span>
+    </div>
+    <div class="flow-wrap"><svg id="flowSvg"></svg></div>
+  </section>
+
+  <section class="view" id="rankView">
+    <div class="rank-grid" id="rankGrid"></div>
+  </section>
+
+  <section class="view" id="oppView">
+    <div class="opp-intro">
+      <h2>High-Conviction Opportunity Screen</h2>
+      <p>Companies are scored 0–100 on a <b>structured conviction framework</b> — not a price target. Each score blends four dimensions: <b>AI exposure</b> (how much upside is tied to the AI build-out), <b>Moat</b> (durability of advantage & pricing power), <b>Centrality</b> (how essential to the OpenAI + Anthropic supply chains), and <b>Durability</b> (balance sheet, cyclicality, business quality). Tiers reflect risk/reward, not certainty. Click any card for live technicals, fundamentals, and the full thesis.</p>
+      <div class="opp-filters" id="oppFilters">
+        <span class="opill active" data-tier="all">All tiers</span>
+        <span class="opill" data-tier="Highest">Highest conviction</span>
+        <span class="opill" data-tier="High">High conviction</span>
+        <span class="opill" data-tier="Speculative">Speculative / high-beta</span>
+      </div>
+      <div class="disclaimer">⚠ Educational analysis, <b>not investment advice</b>. AI-stock valuations are elevated and cyclical; do your own research and size positions to your own risk tolerance.</div>
+    </div>
+    <div class="opp-grid" id="oppGrid"></div>
+  </section>
+</main>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <h3 id="m-name">Company</h3>
+        <div class="mt" id="m-ticker"></div>
+        <div id="m-eco"></div>
+        <div class="mrole" id="m-role"></div>
+      </div>
+      <button class="close" id="m-close">×</button>
+    </div>
+    <div id="m-conviction"></div>
+    <div class="msub" id="m-subtabs">
+      <div class="msub-tab active" data-sub="chart">Chart</div>
+      <div class="msub-tab" data-sub="signals">Signals</div>
+      <div class="msub-tab" data-sub="trade">Playbook</div>
+      <div class="msub-tab" data-sub="fund">Fundamentals</div>
+      <div class="msub-tab" data-sub="thesis">Analysis</div>
+    </div>
+    <div class="modal-body">
+      <div class="tv-wrap" id="tv-wrap"></div>
+      <div class="ext-links" id="m-links"></div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  Stock data is loaded live from TradingView widgets when you open a company. Ecosystem relationships are based on publicly announced partnerships and standard supply-chain layers; lowest-tier supplier lists are industry-typical, not always customer-confirmed. Not investment advice.
+</footer>
+
+<script>
+/* ecosystem: 'openai' | 'anthropic' | 'both' ; tv: TradingView symbol or null (private) */
+const LAYERS = [
+  {
+    id:"labs", title:"Frontier AI Labs", desc:"The model owners themselves",
+    items:[
+      {n:"OpenAI", t:null, eco:"openai", r:"GPT, ChatGPT, API, Codex"},
+      {n:"Anthropic", t:null, eco:"anthropic", r:"Claude, Claude API, Claude Code"},
+    ]
+  },
+  {
+    id:"cloud", title:"Cloud & Distribution Partners", desc:"Where the models live and sell",
+    items:[
+      {n:"Microsoft (Azure)", t:"NASDAQ:MSFT", eco:"openai", r:"Azure, Copilot, historical exclusive compute partner"},
+      {n:"Oracle (OCI)", t:"NYSE:ORCL", eco:"openai", r:"OCI compute + Stargate data center capacity"},
+      {n:"Amazon (AWS)", t:"NASDAQ:AMZN", eco:"both", r:"Anthropic's primary cloud + Bedrock; also extra OpenAI capacity"},
+      {n:"Alphabet (Google Cloud)", t:"NASDAQ:GOOGL", eco:"anthropic", r:"TPU capacity, Vertex AI distribution"},
+      {n:"CoreWeave", t:"NASDAQ:CRWV", eco:"openai", r:"Specialized GPU cloud, Stargate-related projects"},
+    ]
+  },
+  {
+    id:"software", title:"AI Software & Applications", desc:"The demand side — apps, data, agents & inference built on Claude/GPT",
+    items:[
+      {n:"Palantir", t:"NASDAQ:PLTR", eco:"anthropic", r:"AIP/ontology; Claude in gov & defense via AWS"},
+      {n:"ServiceNow", t:"NYSE:NOW", eco:"both", r:"Workflow platform embedding AI agents"},
+      {n:"Snowflake", t:"NYSE:SNOW", eco:"both", r:"Data cloud; Cortex serves Claude & others"},
+      {n:"Salesforce", t:"NYSE:CRM", eco:"both", r:"Agentforce — multi-model AI agents"},
+      {n:"Datadog", t:"NASDAQ:DDOG", eco:"both", r:"Observability for AI/LLM workloads"},
+      {n:"MongoDB", t:"NASDAQ:MDB", eco:"both", r:"Vector/operational DB for AI apps"},
+      {n:"CrowdStrike", t:"NASDAQ:CRWD", eco:"both", r:"AI-driven security; Claude integrations"},
+      {n:"Palo Alto Networks", t:"NASDAQ:PANW", eco:"both", r:"AI security platform"},
+      {n:"Adobe", t:"NASDAQ:ADBE", eco:"both", r:"Creative/Document AI (Firefly, Acrobat AI)"},
+      {n:"Accenture", t:"NYSE:ACN", eco:"both", r:"Enterprise AI deployment / GenAI services"},
+      {n:"IBM", t:"NYSE:IBM", eco:"both", r:"watsonx, consulting, hybrid AI"},
+      {n:"Databricks", t:null, eco:"both", r:"Data + AI lakehouse (private)"},
+      {n:"Perplexity", t:null, eco:"both", r:"AI answer engine on Claude/GPT (private)"},
+      {n:"Hugging Face", t:null, eco:"both", r:"Model hub / inference (private)"},
+      {n:"Together AI", t:null, eco:"both", r:"Inference / fine-tuning cloud (private)"},
+    ]
+  },
+  {
+    id:"neocloud", title:"GPU Neoclouds & AI Capacity", desc:"Specialized GPU-cloud and converted compute capacity",
+    items:[
+      {n:"CoreWeave", t:"NASDAQ:CRWV", eco:"openai", r:"Largest neocloud; OpenAI/Stargate capacity"},
+      {n:"Nebius", t:"NASDAQ:NBIS", eco:"both", r:"AI-native cloud, GPU capacity at scale"},
+      {n:"IREN", t:"NASDAQ:IREN", eco:"both", r:"AI data centers (ex-bitcoin) GPU cloud"},
+      {n:"Applied Digital", t:"NASDAQ:APLD", eco:"both", r:"HPC/AI data center hosting leases"},
+      {n:"Core Scientific", t:"NASDAQ:CORZ", eco:"openai", r:"Hosts CoreWeave GPU capacity"},
+      {n:"Cipher Mining", t:"NASDAQ:CIFR", eco:"both", r:"HPC/AI compute conversion"},
+      {n:"TeraWulf", t:"NASDAQ:WULF", eco:"both", r:"AI/HPC hosting capacity"},
+      {n:"Hut 8", t:"NASDAQ:HUT", eco:"both", r:"AI/HPC compute capacity"},
+      {n:"Crusoe", t:null, eco:"openai", r:"Abilene Stargate campus operator (private)"},
+      {n:"Lambda", t:null, eco:"both", r:"GPU cloud (private)"},
+      {n:"Nscale", t:null, eco:"both", r:"AI cloud capacity (private)"},
+    ]
+  },
+  {
+    id:"capital", title:"Financing & Site / Data-Center Builders", desc:"Capital and the physical campuses",
+    items:[
+      {n:"SoftBank", t:"TSE:9984", eco:"openai", r:"Stargate financing & strategic backing"},
+      {n:"Blue Owl Capital", t:"NYSE:OWL", eco:"openai", r:"Stargate/Abilene data-center JV financing"},
+      {n:"Blackstone", t:"NYSE:BX", eco:"both", r:"Data-center investment (QTS) & infra capital"},
+      {n:"Brookfield", t:"NYSE:BN", eco:"both", r:"AI infrastructure & power financing"},
+      {n:"DigitalBridge", t:"NYSE:DBRG", eco:"both", r:"Digital infrastructure investor"},
+      {n:"KKR", t:"NYSE:KKR", eco:"both", r:"Data-center & infra capital"},
+      {n:"MGX", t:null, eco:"openai", r:"Gulf sovereign capital, Stargate equity"},
+      {n:"Crusoe", t:null, eco:"openai", r:"Abilene Stargate campus build/operate"},
+      {n:"Lancium", t:null, eco:"openai", r:"Clean-power land/site ecosystem (Abilene)"},
+      {n:"PwC", t:null, eco:"anthropic", r:"Enterprise Claude deployment / SI channel"},
+    ]
+  },
+  {
+    id:"accel", title:"Compute Chips & Accelerators", desc:"The AI silicon backbone",
+    items:[
+      {n:"NVIDIA", t:"NASDAQ:NVDA", eco:"both", r:"GPUs, NVLink, networking, CPO silicon-photonics switches (Quantum-X / Spectrum-X Photonics) — core to both labs"},
+      {n:"AMD", t:"NASDAQ:AMD", eco:"openai", r:"Instinct MI450, OpenAI's 6GW NVIDIA alternative"},
+      {n:"Broadcom", t:"NASDAQ:AVGO", eco:"both", r:"OpenAI custom accelerator + Google TPU supply for Anthropic; NPO/CPO switch optics (Bailly)"},
+      {n:"AWS Trainium / Annapurna", t:"NASDAQ:AMZN", eco:"anthropic", r:"Trainium2/3, up to 5GW for Anthropic (Amazon-owned)"},
+      {n:"Google TPU", t:"NASDAQ:GOOGL", eco:"anthropic", r:"TPU v5p/v6/Ironwood pods (Alphabet-owned)"},
+      {n:"Marvell", t:"NASDAQ:MRVL", eco:"both", r:"Custom silicon + optical DSP / networking silicon (LPO/CPO exposure)"},
+      {n:"Intel", t:"NASDAQ:INTC", eco:"both", r:"Xeon CPUs, Gaudi, Ethernet"},
+      {n:"Arm", t:"NASDAQ:ARM", eco:"both", r:"CPU IP behind Grace, Graviton, hyperscale CPUs"},
+      {n:"Microsoft Maia", t:"NASDAQ:MSFT", eco:"openai", r:"Microsoft in-house AI accelerator for Azure/OpenAI"},
+      {n:"Cerebras", t:null, eco:"both", r:"Wafer-scale AI accelerators (private)"},
+      {n:"Groq", t:null, eco:"both", r:"LPU inference accelerators (private)"},
+      {n:"SambaNova", t:null, eco:"both", r:"Reconfigurable AI chips (private)"},
+      {n:"Tenstorrent", t:null, eco:"both", r:"RISC-V AI accelerators (private)"},
+    ]
+  },
+  {
+    id:"eda", title:"Chip Design Tools & Fab Equipment", desc:"What makes the chips makeable",
+    items:[
+      {n:"Synopsys", t:"NASDAQ:SNPS", eco:"both", r:"EDA chip design software"},
+      {n:"Cadence", t:"NASDAQ:CDNS", eco:"both", r:"EDA chip design software"},
+      {n:"ASML", t:"NASDAQ:ASML", eco:"both", r:"EUV lithography — sole supplier"},
+      {n:"Applied Materials", t:"NASDAQ:AMAT", eco:"both", r:"Wafer fab equipment"},
+      {n:"Lam Research", t:"NASDAQ:LRCX", eco:"both", r:"Etch/deposition fab equipment"},
+      {n:"KLA", t:"NASDAQ:KLAC", eco:"both", r:"Process control / inspection"},
+      {n:"Tokyo Electron", t:"TSE:8035", eco:"both", r:"Wafer fab equipment"},
+      {n:"Advantest", t:"TSE:6857", eco:"both", r:"Chip test systems (HBM/AI test demand)"},
+      {n:"Teradyne", t:"NASDAQ:TER", eco:"both", r:"Automated test equipment"},
+      {n:"Keysight", t:"NYSE:KEYS", eco:"both", r:"Electronic test & measurement"},
+      {n:"Lasertec", t:"TSE:6920", eco:"both", r:"EUV mask inspection"},
+      {n:"Onto Innovation", t:"NYSE:ONTO", eco:"both", r:"Metrology / packaging inspection"},
+      {n:"Camtek", t:"NASDAQ:CAMT", eco:"both", r:"Advanced-packaging inspection"},
+      {n:"FormFactor", t:"NASDAQ:FORM", eco:"both", r:"Probe cards for test"},
+      {n:"Nova", t:"NASDAQ:NVMI", eco:"both", r:"Process-control metrology"},
+      {n:"MKS Instruments", t:"NASDAQ:MKSI", eco:"both", r:"Subsystems, lasers, vacuum"},
+      {n:"Entegris", t:"NASDAQ:ENTG", eco:"both", r:"Materials handling / purity"},
+      {n:"ASM International", t:"EURONEXT:ASM", eco:"both", r:"ALD deposition equipment"},
+      {n:"BE Semiconductor", t:"EURONEXT:BESI", eco:"both", r:"Hybrid bonding / packaging tools"},
+      {n:"Kulicke & Soffa", t:"NASDAQ:KLIC", eco:"both", r:"Packaging / bonding equipment"},
+      {n:"Photronics", t:"NASDAQ:PLAB", eco:"both", r:"Photomasks"},
+      {n:"Ultra Clean Holdings", t:"NASDAQ:UCTT", eco:"both", r:"Fab subsystems"},
+      {n:"Ichor Holdings", t:"NASDAQ:ICHR", eco:"both", r:"Fluid delivery subsystems"},
+      {n:"Veeco", t:"NASDAQ:VECO", eco:"both", r:"Deposition / lithography tools"},
+      {n:"Aehr Test Systems", t:"NASDAQ:AEHR", eco:"both", r:"Burn-in / wafer-level test"},
+    ]
+  },
+  {
+    id:"foundry", title:"Foundry & Advanced Packaging", desc:"CoWoS + leading-edge nodes — a key bottleneck",
+    items:[
+      {n:"TSMC", t:"NYSE:TSM", eco:"both", r:"Main leading-edge foundry + CoWoS packaging for everyone"},
+      {n:"Samsung Foundry", t:"KRX:005930", eco:"both", r:"Alt advanced foundry + HBM"},
+      {n:"ASE Technology", t:"NYSE:ASX", eco:"both", r:"OSAT packaging & test"},
+      {n:"Amkor", t:"NASDAQ:AMKR", eco:"both", r:"OSAT packaging & test"},
+      {n:"Powertech (PTI)", t:"TWSE:6239", eco:"both", r:"Memory/semiconductor packaging & test"},
+      {n:"JCET", t:"SSE:600584", eco:"both", r:"OSAT packaging & test"},
+      {n:"GlobalFoundries", t:"NASDAQ:GFS", eco:"both", r:"Specialty / mature-node foundry"},
+      {n:"UMC", t:"NYSE:UMC", eco:"both", r:"Foundry (mature/specialty nodes)"},
+      {n:"SMIC", t:"HKEX:981", eco:"both", r:"Largest China foundry"},
+      {n:"Hua Hong", t:"HKEX:1347", eco:"both", r:"China specialty foundry"},
+      {n:"Tower Semiconductor", t:"NASDAQ:TSEM", eco:"both", r:"Analog/specialty foundry"},
+      {n:"Chipbond", t:"TPEX:6147", eco:"both", r:"Bumping / driver-IC packaging"},
+      {n:"King Yuan Electronics", t:"TWSE:2449", eco:"both", r:"Test & packaging services"},
+    ]
+  },
+  {
+    id:"materials", title:"Materials, Substrates & Chemicals", desc:"Wafers, ABF substrates, gases, advanced PCBs",
+    items:[
+      {n:"Shin-Etsu Chemical", t:"TSE:4063", eco:"both", r:"Silicon wafers, photoresist"},
+      {n:"SUMCO", t:"TSE:3436", eco:"both", r:"Silicon wafers"},
+      {n:"Soitec", t:"EURONEXT:SOI", eco:"both", r:"Engineered substrates"},
+      {n:"Ibiden", t:"TSE:4062", eco:"both", r:"ABF / IC package substrates"},
+      {n:"Unimicron", t:"TWSE:3037", eco:"both", r:"IC substrates & high-end PCB"},
+      {n:"Nan Ya PCB", t:"TWSE:8046", eco:"both", r:"IC substrates / PCB"},
+      {n:"Zhen Ding Tech", t:"TWSE:4958", eco:"both", r:"Advanced PCB / substrates"},
+      {n:"AT&S", t:"VIE:ATS", eco:"both", r:"IC substrates & PCB"},
+      {n:"TTM Technologies", t:"NASDAQ:TTMI", eco:"both", r:"Advanced PCBs"},
+      {n:"Rogers Corp", t:"NYSE:ROG", eco:"both", r:"High-frequency / power materials"},
+      {n:"Linde", t:"NASDAQ:LIN", eco:"both", r:"Industrial / electronic gases"},
+      {n:"Air Products", t:"NYSE:APD", eco:"both", r:"Industrial gases"},
+      {n:"Air Liquide", t:"EURONEXT:AI", eco:"both", r:"Electronic specialty gases"},
+      {n:"DuPont", t:"NYSE:DD", eco:"both", r:"Semiconductor materials / CMP"},
+      {n:"Element Solutions", t:"NYSE:ESI", eco:"both", r:"Assembly / plating chemistries"},
+    ]
+  },
+  {
+    id:"memory", title:"Memory — HBM / DRAM / NAND", desc:"HBM supply concentrated among three players",
+    items:[
+      {n:"SK hynix", t:"KRX:000660", eco:"both", r:"Leading HBM supplier"},
+      {n:"Micron", t:"NASDAQ:MU", eco:"both", r:"HBM, DRAM, NAND"},
+      {n:"Samsung Electronics", t:"KRX:005930", eco:"both", r:"HBM, DRAM, NAND, foundry"},
+      {n:"Kioxia", t:"TSE:285A", eco:"both", r:"NAND flash"},
+      {n:"Western Digital / SanDisk", t:"NASDAQ:SNDK", eco:"both", r:"NAND / storage"},
+      {n:"Nanya Technology", t:"TWSE:2408", eco:"both", r:"DRAM"},
+      {n:"Winbond", t:"TWSE:2344", eco:"both", r:"Specialty DRAM / flash"},
+      {n:"Macronix", t:"TWSE:2337", eco:"both", r:"NOR / NAND flash"},
+      {n:"Phison", t:"TPEX:8299", eco:"both", r:"NAND / SSD controllers"},
+      {n:"Silicon Motion", t:"NASDAQ:SIMO", eco:"both", r:"NAND / SSD controllers"},
+    ]
+  },
+  {
+    id:"servers", title:"Server & Rack OEM / ODM", desc:"Who bolts the GPUs into racks",
+    items:[
+      {n:"Foxconn (Hon Hai)", t:"TWSE:2317", eco:"both", r:"AI server & rack integration"},
+      {n:"Quanta", t:"TWSE:2382", eco:"both", r:"Hyperscale server/rack ODM"},
+      {n:"Wiwynn", t:"TWSE:6669", eco:"both", r:"Hyperscale server ODM"},
+      {n:"Wistron", t:"TWSE:3231", eco:"both", r:"AI server/rack manufacturing"},
+      {n:"Inventec", t:"TWSE:2356", eco:"both", r:"Server ODM"},
+      {n:"Pegatron", t:"TWSE:4938", eco:"both", r:"Server/electronics manufacturing"},
+      {n:"Supermicro", t:"NASDAQ:SMCI", eco:"both", r:"AI servers, liquid-cooled racks"},
+      {n:"Dell", t:"NYSE:DELL", eco:"both", r:"Enterprise AI servers"},
+      {n:"HPE", t:"NYSE:HPE", eco:"both", r:"AI servers, Cray/HPC"},
+      {n:"Lenovo", t:"HKEX:992", eco:"both", r:"AI servers"},
+      {n:"Gigabyte", t:"TWSE:2376", eco:"both", r:"AI servers/motherboards"},
+      {n:"ASUS", t:"TWSE:2357", eco:"both", r:"AI servers"},
+      {n:"Jabil", t:"NYSE:JBL", eco:"both", r:"Contract manufacturing / AI hardware"},
+      {n:"Flex", t:"NASDAQ:FLEX", eco:"both", r:"Contract manufacturing, power/racks"},
+      {n:"Sanmina", t:"NASDAQ:SANM", eco:"both", r:"Electronics manufacturing services"},
+      {n:"Penguin Solutions", t:"NASDAQ:PENG", eco:"both", r:"AI cluster integration / memory"},
+      {n:"MiTAC Holdings", t:"TWSE:3706", eco:"both", r:"Server systems / ODM"},
+      {n:"Ennoconn", t:"TWSE:6414", eco:"both", r:"Industrial / server systems"},
+      {n:"ASRock", t:"TWSE:3515", eco:"both", r:"Server boards / systems"},
+    ]
+  },
+  {
+    id:"net", title:"Networking — Switches, NICs, Optics, Cables", desc:"Cluster-scale interconnect — and the LPO → NPO → CPO optics shift",
+    items:[
+      {n:"Optics architecture: LPO / NPO / CPO", t:null, eco:"both", r:"The interconnect roadmap: LPO (linear-drive pluggable optics) strips out the DSP for lower power/cost; NPO (near-packaged optics) moves optics next to the switch ASIC; CPO (co-packaged optics) integrates optics into the ASIC package for the biggest power savings. Players below: Broadcom & NVIDIA (CPO switches), Marvell/MACOM/Semtech (LPO silicon), Coherent/Lumentum/Corning (optics & fiber)."},
+      {n:"Arista Networks", t:"NYSE:ANET", eco:"both", r:"AI Ethernet switch systems"},
+      {n:"Cisco", t:"NASDAQ:CSCO", eco:"both", r:"Switching, Silicon One"},
+      {n:"Nokia", t:"NYSE:NOK", eco:"both", r:"IP/optical networking, DC switching; Infinera optical transport, NVIDIA AI-networking partnership"},
+      {n:"Celestica", t:"NYSE:CLS", eco:"both", r:"Switch systems / hyperscale hardware"},
+      {n:"Coherent", t:"NYSE:COHR", eco:"both", r:"Optical modules & lasers; LPO / CPO optics engine ramp"},
+      {n:"Lumentum", t:"NASDAQ:LITE", eco:"both", r:"Lasers & optical components; CPO / LPO light sources"},
+      {n:"Fabrinet", t:"NYSE:FN", eco:"both", r:"Optical module manufacturing"},
+      {n:"Innolight", t:"SZSE:300308", eco:"both", r:"Optical transceivers"},
+      {n:"Eoptolink", t:"SZSE:300502", eco:"both", r:"Optical transceivers"},
+      {n:"Amphenol", t:"NYSE:APH", eco:"both", r:"NVLink connectors, cables"},
+      {n:"TE Connectivity", t:"NYSE:TEL", eco:"both", r:"Connectors / cabling"},
+      {n:"Luxshare", t:"SZSE:002475", eco:"both", r:"Connectors / cables"},
+      {n:"Corning", t:"NYSE:GLW", eco:"both", r:"Fiber / optical cabling; CPO external-laser fiber attach"},
+      {n:"Prysmian", t:"MIL:PRY", eco:"both", r:"Fiber / cabling"},
+      {n:"CommScope", t:"NASDAQ:COMM", eco:"both", r:"Fiber / connectivity"},
+      {n:"Belden", t:"NYSE:BDC", eco:"both", r:"Cabling / connectivity"},
+      {n:"Molex (Koch)", t:null, eco:"both", r:"Connectors (private)"},
+      {n:"Astera Labs", t:"NASDAQ:ALAB", eco:"both", r:"Connectivity, retimers, PCIe/CXL fabric"},
+      {n:"Credo Technology", t:"NASDAQ:CRDO", eco:"both", r:"Active electrical cables, SerDes"},
+      {n:"MACOM", t:"NASDAQ:MTSI", eco:"both", r:"LPO drivers/TIAs, optical / RF / analog semis"},
+      {n:"Ciena", t:"NYSE:CIEN", eco:"both", r:"Optical transport / DCI"},
+      {n:"Semtech", t:"NASDAQ:SMTC", eco:"both", r:"LPO / linear TIAs, optical / connectivity ICs"},
+      {n:"MaxLinear", t:"NASDAQ:MXL", eco:"both", r:"Optical DSP / connectivity"},
+      {n:"Alphawave", t:null, eco:"both", r:"High-speed SerDes / connectivity IP — being acquired by Qualcomm (LSE:AWE)"},
+      {n:"Applied Optoelectronics", t:"NASDAQ:AAOI", eco:"both", r:"Optical transceivers / lasers"},
+      {n:"Accelink", t:"SZSE:002281", eco:"both", r:"Optical modules / components"},
+      {n:"Sumitomo Electric", t:"TSE:5802", eco:"both", r:"Optical fiber / modules"},
+      {n:"Accton", t:"TWSE:2345", eco:"both", r:"White-box switch systems"},
+      {n:"Extreme Networks", t:"NASDAQ:EXTR", eco:"both", r:"Networking systems"},
+    ]
+  },
+  {
+    id:"cool", title:"Cooling & Thermal Management", desc:"Liquid cooling for dense AI racks",
+    items:[
+      {n:"Vertiv", t:"NYSE:VRT", eco:"both", r:"Thermal + power infrastructure"},
+      {n:"Schneider Electric", t:"EURONEXT:SU", eco:"both", r:"Power & cooling (owns Motivair)"},
+      {n:"Eaton", t:"NYSE:ETN", eco:"both", r:"Power + liquid cooling (Boyd Thermal)"},
+      {n:"Johnson Controls", t:"NYSE:JCI", eco:"both", r:"Chillers / building systems"},
+      {n:"Carrier", t:"NYSE:CARR", eco:"both", r:"Chillers / HVAC"},
+      {n:"Trane Technologies", t:"NYSE:TT", eco:"both", r:"Chillers / HVAC"},
+      {n:"Modine", t:"NYSE:MOD", eco:"both", r:"Thermal management"},
+      {n:"Asetek", t:null, eco:"both", r:"Liquid cooling — Oslo-listed (ASETEK.OL); limited chart data"},
+      {n:"CoolIT Systems", t:null, eco:"both", r:"Direct liquid cooling (private)"},
+      {n:"Boyd", t:null, eco:"both", r:"Thermal / liquid cooling (Eaton-acquired)"},
+      {n:"nVent Electric", t:"NYSE:NVT", eco:"both", r:"Liquid cooling, enclosures, busbar"},
+      {n:"Munters", t:"OMXSTO:MTRS", eco:"both", r:"Data-center cooling / air treatment"},
+      {n:"SPX Technologies", t:"NYSE:SPXC", eco:"both", r:"Cooling systems / HVAC"},
+      {n:"Lennox", t:"NYSE:LII", eco:"both", r:"HVAC / cooling"},
+      {n:"Pentair", t:"NYSE:PNR", eco:"both", r:"Liquid cooling / fluid systems"},
+      {n:"Daikin", t:"TSE:6367", eco:"both", r:"HVAC / chillers"},
+      {n:"AVC (Asia Vital)", t:"TWSE:3017", eco:"both", r:"Thermal modules / liquid cooling"},
+      {n:"Auras Technology", t:"TPEX:3324", eco:"both", r:"Heat sinks / liquid cooling"},
+      {n:"Envicool", t:"SZSE:002837", eco:"both", r:"Data-center cooling (China)"},
+    ]
+  },
+  {
+    id:"power", title:"Power, Electrical, Grid & Backup", desc:"Feeding hundreds of MW to GW",
+    items:[
+      {n:"ABB", t:"NYSE:ABB", eco:"both", r:"Switchgear / electrical equipment"},
+      {n:"Siemens", t:"XETR:SIE", eco:"both", r:"Electrical infrastructure"},
+      {n:"Delta Electronics", t:"TWSE:2308", eco:"both", r:"Power supplies, UPS, thermal"},
+      {n:"GE Vernova", t:"NYSE:GEV", eco:"both", r:"Grid equipment / power gen"},
+      {n:"Hitachi", t:"TSE:6501", eco:"both", r:"Hitachi Energy: transformers / grid"},
+      {n:"Caterpillar", t:"NYSE:CAT", eco:"both", r:"Backup generators"},
+      {n:"Cummins", t:"NYSE:CMI", eco:"both", r:"Backup generators"},
+      {n:"Generac", t:"NYSE:GNRC", eco:"both", r:"Backup power"},
+      {n:"Powell Industries", t:"NASDAQ:POWL", eco:"both", r:"Switchgear / electrical systems"},
+      {n:"Hubbell", t:"NYSE:HUBB", eco:"both", r:"Electrical / grid components"},
+      {n:"AMETEK", t:"NYSE:AME", eco:"both", r:"Power / instrumentation"},
+      {n:"Emerson", t:"NYSE:EMR", eco:"both", r:"Automation / power management"},
+      {n:"Vicor", t:"NASDAQ:VICR", eco:"both", r:"Power-delivery modules for AI chips"},
+      {n:"Monolithic Power", t:"NASDAQ:MPWR", eco:"both", r:"Power-management ICs for GPUs"},
+      {n:"Navitas", t:"NASDAQ:NVTS", eco:"both", r:"GaN/SiC power semiconductors"},
+      {n:"Power Integrations", t:"NASDAQ:POWI", eco:"both", r:"High-voltage power ICs"},
+      {n:"Infineon", t:"XETR:IFX", eco:"both", r:"Power semiconductors"},
+      {n:"STMicroelectronics", t:"NYSE:STM", eco:"both", r:"Power / analog semis"},
+      {n:"onsemi", t:"NASDAQ:ON", eco:"both", r:"Power semiconductors"},
+      {n:"Siemens Energy", t:"XETR:ENR", eco:"both", r:"Grid / generation equipment"},
+      {n:"Legrand", t:"EURONEXT:LR", eco:"both", r:"Data-center power distribution"},
+      {n:"Mitsubishi Heavy", t:"TSE:7011", eco:"both", r:"Turbines / power generation"},
+      {n:"Fuji Electric", t:"TSE:6504", eco:"both", r:"Power electronics / UPS"},
+      {n:"Bloom Energy", t:"NYSE:BE", eco:"both", r:"Fuel cells / on-site power"},
+      {n:"Kohler", t:null, eco:"both", r:"Backup generators (private)"},
+    ]
+  },
+  {
+    id:"energy", title:"Energy & Power Generation", desc:"Utilities, nuclear, uranium — feeding gigawatt campuses",
+    items:[
+      {n:"Constellation Energy", t:"NASDAQ:CEG", eco:"openai", r:"Three Mile Island restart for Microsoft"},
+      {n:"Talen Energy", t:"NASDAQ:TLN", eco:"anthropic", r:"Susquehanna nuclear PPA with AWS"},
+      {n:"Vistra", t:"NYSE:VST", eco:"both", r:"Nuclear / gas generation for data centers"},
+      {n:"NRG Energy", t:"NYSE:NRG", eco:"both", r:"Power generation & supply"},
+      {n:"NextEra Energy", t:"NYSE:NEE", eco:"both", r:"Renewables / nuclear at scale"},
+      {n:"GE Vernova", t:"NYSE:GEV", eco:"both", r:"Gas turbines / grid for AI loads"},
+      {n:"Oklo", t:"NYSE:OKLO", eco:"both", r:"Small modular reactors (SMR)"},
+      {n:"NuScale Power", t:"NYSE:SMR", eco:"both", r:"Small modular reactors"},
+      {n:"Nano Nuclear Energy", t:"NASDAQ:NNE", eco:"both", r:"Microreactors"},
+      {n:"BWX Technologies", t:"NYSE:BWXT", eco:"both", r:"Nuclear components / fuel"},
+      {n:"Centrus Energy", t:"NYSE:LEU", eco:"both", r:"Enriched uranium supply"},
+      {n:"Cameco", t:"NYSE:CCJ", eco:"both", r:"Uranium mining / fuel"},
+      {n:"First Solar", t:"NASDAQ:FSLR", eco:"both", r:"Solar for data-center PPAs"},
+    ]
+  },
+  {
+    id:"realestate", title:"Data Centers, REITs & Build-out", desc:"The buildings, land, and crews",
+    items:[
+      {n:"Digital Realty", t:"NYSE:DLR", eco:"both", r:"Data-center REIT / colocation"},
+      {n:"Equinix", t:"NASDAQ:EQIX", eco:"both", r:"Data-center REIT / interconnection"},
+      {n:"American Tower", t:"NYSE:AMT", eco:"both", r:"Towers + data-center assets"},
+      {n:"Iron Mountain", t:"NYSE:IRM", eco:"both", r:"Data-center / records infrastructure"},
+      {n:"Quanta Services", t:"NYSE:PWR", eco:"both", r:"Electrical / grid construction"},
+      {n:"EMCOR Group", t:"NYSE:EME", eco:"both", r:"Mechanical / electrical construction"},
+      {n:"Comfort Systems USA", t:"NYSE:FIX", eco:"both", r:"HVAC / mechanical build-out"},
+      {n:"Sterling Infrastructure", t:"NASDAQ:STRL", eco:"both", r:"Data-center site development"},
+      {n:"Dycom", t:"NYSE:DY", eco:"both", r:"Fiber / network construction"},
+      {n:"MasTec", t:"NYSE:MTZ", eco:"both", r:"Infrastructure / power construction"},
+      {n:"WESCO", t:"NYSE:WCC", eco:"both", r:"Electrical / data-center distribution"},
+      {n:"Arrow Electronics", t:"NYSE:ARW", eco:"both", r:"Component distribution"},
+      {n:"Avnet", t:"NASDAQ:AVT", eco:"both", r:"Component distribution"},
+    ]
+  },
+];
+
+const ecoClass = e => "eco-"+e;
+const ecoLabel = {openai:"OpenAI", anthropic:"Anthropic", both:"Both ecosystems"};
+
+const app = document.getElementById("app");
+
+LAYERS.forEach(layer=>{
+  const sec = document.createElement("section");
+  sec.className="layer";
+  sec.dataset.layer=layer.id;
+  const total = layer.items.length;
+  sec.innerHTML = `
+    <div class="layer-head">
+      <h2>${layer.title} <span class="layer-desc">${layer.desc}</span></h2>
+      <div style="display:flex;align-items:center;gap:12px">
+        <span class="badge">${total}</span>
+        <span class="chev">▾</span>
+      </div>
+    </div>
+    <div class="chips"></div>`;
+  const chips = sec.querySelector(".chips");
+  layer.items.forEach(it=>{
+    const c=document.createElement("div");
+    c.className="chip "+ecoClass(it.eco);
+    c.dataset.name=it.n.toLowerCase();
+    c.dataset.role=it.r.toLowerCase();
+    c.dataset.ticker=(it.t||"private").toLowerCase();
+    c.dataset.eco=it.eco;
+    c.dataset.public=it.t?"1":"0";
+    const tkr = it.t ? it.t.split(":")[1] : "PRIVATE";
+    c.innerHTML=`
+      <span class="ecotag"></span>
+      <span class="name">${it.n}</span>
+      <span class="ticker ${it.t?'':'priv'}">${tkr}</span>
+      <span class="role">${it.r}</span>`;
+    c.addEventListener("click",()=>openModal(it));
+    chips.appendChild(c);
+  });
+  sec.querySelector(".layer-head").addEventListener("click",()=>sec.classList.toggle("collapsed"));
+  app.appendChild(sec);
+});
+
+/* ---------- Conviction analysis (structured framework, not advice) ----------
+   scores 1-5: ai=AI exposure, moat=durability/pricing power,
+   central=centrality to OpenAI+Anthropic, durab=balance sheet/low cyclicality */
+const ANALYSIS={
+ "NASDAQ:NVDA":{ai:5,moat:5,central:5,durab:4,tier:"Highest",
+   thesis:"The platform every frontier model trains on. ~90% of AI training compute runs on NVIDIA, and it sells into BOTH OpenAI and Anthropic. The annual product cadence (Blackwell→Rubin) keeps competitors a step behind.",
+   edge:"CUDA software lock-in is the real moat — a decade of libraries, tooling and developer muscle memory that AMD/custom-silicon can't replicate quickly. Owns networking (NVLink) too.",
+   risk:"Custom silicon (Broadcom ASICs, Google TPU, AWS Trainium) is the long-term erosion threat. Plus China export limits, extreme size, and inevitable order-digestion cycles."},
+ "NASDAQ:AVGO":{ai:5,moat:5,central:5,durab:4,tier:"Highest",
+   thesis:"The 'arms dealer' to the in-house chip movement: co-designs OpenAI's custom accelerator AND supplies Google's TPUs that Anthropic uses. Wins as labs try to escape NVIDIA — on both sides.",
+   edge:"Only credible merchant partner for custom AI ASICs at leading-edge scale, plus dominant data-center networking silicon (Tomahawk/Jericho) and sticky VMware software cash flow.",
+   risk:"Lumpy ASIC program ramps and heavy customer concentration. Valuation now prices in the custom-silicon boom continuing."},
+ "NYSE:TSM":{ai:5,moat:5,central:5,durab:4,tier:"Highest",
+   thesis:"Every advanced AI chip on earth — NVIDIA, AMD, Broadcom, TPU, Trainium — is physically made here. CoWoS advanced packaging is the single biggest supply bottleneck in AI hardware.",
+   edge:"Process-node leadership plus packaging capacity with no real second source. Pricing power is rising as customers compete for allocation.",
+   risk:"Taiwan geopolitical concentration is the defining tail risk. Also enormous capex intensity and FX."},
+ "NASDAQ:ASML":{ai:4,moat:5,central:4,durab:4,tier:"Highest",
+   thesis:"Literal monopoly on EUV lithography — no leading-edge AI chip advances without ASML's machines. It sits one level deeper than the chipmakers, so it wins regardless of who wins the GPU war.",
+   edge:"Sole supplier of EUV (and the only one with High-NA). Decade-plus lead and an installed-base service annuity.",
+   risk:"China export restrictions, lumpy multi-quarter order timing, and customer capex cyclicality."},
+ "NASDAQ:SNPS":{ai:4,moat:5,central:4,durab:5,tier:"Highest",
+   thesis:"Half of the EDA duopoly — no complex AI chip gets designed without Synopsys or Cadence. Rising design complexity (chiplets, advanced nodes) increases tool intensity per chip.",
+   edge:"Duopoly with massive switching costs and ~90% recurring revenue. Ansys adds simulation. AI-assisted design is a new growth vector.",
+   risk:"China exposure, premium valuation, long sales cycles."},
+ "NASDAQ:CDNS":{ai:4,moat:5,central:4,durab:5,tier:"Highest",
+   thesis:"The other half of the EDA duopoly with Synopsys. Sells the picks-and-shovels of chip design itself, capturing value from every accelerator program at NVIDIA, Broadcom, hyperscaler custom teams alike.",
+   edge:"Sticky duopoly, recurring revenue, expanding into system design & simulation. Wins no matter which chip architecture prevails.",
+   risk:"China, rich multiple, dependent on continued semiconductor R&D spend."},
+ "NASDAQ:MU":{ai:5,moat:4,central:5,durab:3,tier:"Highest",
+   thesis:"The only US-listed pure play on HBM — the memory stacked on every AI GPU, and the second-biggest AI hardware bottleneck after packaging. HBM is sold out and pricing power is back.",
+   edge:"Three-player HBM oligopoly (with SK hynix & Samsung); HBM is largely pre-sold a year out, structurally tighter than commodity DRAM.",
+   risk:"Memory is the most cyclical semiconductor segment — booms reverse hard. Heavy capex, and DRAM commoditization outside HBM."},
+ "NYSE:VRT":{ai:5,moat:4,central:5,durab:3,tier:"Highest",
+   thesis:"The clearest pure-play on the physical bottleneck: every gigawatt of AI compute needs power distribution and (now) liquid cooling. Vertiv sells the full rack-level thermal + power stack.",
+   edge:"Full-stack power+cooling at rack scale with a deep backlog and reference designs alongside NVIDIA. Liquid cooling is a step-change tailwind.",
+   risk:"Competes with Schneider/Eaton, is cyclical with data-center capex, and the multiple has re-rated sharply."},
+ "NYSE:ANET":{ai:5,moat:4,central:4,durab:4,tier:"High",
+   thesis:"Back-end AI networking leader as clusters scale to tens of thousands of GPUs. The shift toward Ethernet (vs InfiniBand) for AI fabrics plays directly to Arista's strength.",
+   edge:"EOS software stack and deep hyperscaler relationships; high-margin, sticky.",
+   risk:"Hyperscalers design their own switches; NVIDIA Spectrum-X competes directly; customer concentration in a few buyers."},
+ "NASDAQ:AMD":{ai:5,moat:3,central:4,durab:3,tier:"High",
+   thesis:"The only credible #2 GPU. OpenAI's 6GW MI450 commitment is a landmark validation that the market wants a second source — and gives AMD real volume and roadmap pull.",
+   edge:"Only vendor offering both x86 server CPUs and data-center GPUs; OpenAI/Meta/Microsoft design partnerships.",
+   risk:"CUDA moat and ROCm immaturity, execution risk on each generation, and a large gap to NVIDIA's share and ecosystem."},
+ "NASDAQ:MRVL":{ai:4,moat:4,central:4,durab:3,tier:"High",
+   thesis:"The #2 custom-silicon house behind Broadcom, plus leading electro-optics and DSPs — double exposure to custom accelerators and the optical interconnect build-out.",
+   edge:"Custom ASIC design wins at hyperscalers + optical DSP leadership.",
+   risk:"ASIC revenue is program-dependent and lumpy; concentration in a few large customers; competitive with Broadcom."},
+ "NASDAQ:ALAB":{ai:5,moat:4,central:4,durab:3,tier:"High",
+   thesis:"Pure-play on AI connectivity — retimers, PCIe/CXL and scale-up fabric chips. Connectivity content grows faster than GPU count as clusters get bigger, so it's a leveraged play on cluster scale.",
+   edge:"Design wins across multiple accelerator platforms; content-per-system keeps rising.",
+   risk:"Single-theme, premium valuation, and rising competition from Credo, Marvell and Broadcom."},
+ "NASDAQ:CRDO":{ai:5,moat:3,central:3,durab:3,tier:"Speculative",
+   thesis:"Active electrical cables (AECs) are becoming standard inside dense GPU racks — Credo is the niche leader, growing revenue triple digits as hyperscalers adopt them.",
+   edge:"First-mover in AECs with strong hyperscaler traction.",
+   risk:"Heavy single-customer concentration, very high valuation, and a narrow product that competitors can target."},
+ "NYSE:COHR":{ai:4,moat:3,central:3,durab:3,tier:"High",
+   thesis:"Optical transceivers and lasers are the nervous system of AI clusters; transceiver speeds (800G→1.6T) upgrade with every GPU generation, and Coherent is a scale leader.",
+   edge:"Vertical integration in lasers/optics and broad transceiver portfolio.",
+   risk:"Competitive, cyclical, debt load, and margins sensitive to component pricing."},
+ "NASDAQ:LITE":{ai:4,moat:3,central:3,durab:3,tier:"High",
+   thesis:"Lumentum supplies the lasers and optical components inside AI datacenter transceivers — a direct beneficiary of the 800G/1.6T interconnect upgrade cycle.",
+   edge:"Strong laser/photonics IP and transceiver ramp with cloud customers.",
+   risk:"Customer concentration, historically lumpy, telecom legacy drag."},
+ "NYSE:ETN":{ai:4,moat:4,central:4,durab:4,tier:"High",
+   thesis:"Electrical infrastructure for the data-center build-out — switchgear, UPS, busway — riding the broader electrification supercycle. Bought Boyd Thermal to add liquid cooling.",
+   edge:"Diversified industrial with a multi-year data-center backlog and pricing power.",
+   risk:"Cyclical end-markets, slower-growth base business, execution on cooling integration."},
+ "NYSE:GEV":{ai:4,moat:4,central:3,durab:4,tier:"High",
+   thesis:"AI data centers need gigawatts of new generation. GE Vernova's gas turbines are effectively sold out for years, and it sells grid equipment for the same build-out.",
+   edge:"One of three Western heavy-turbine makers; grid + generation exposure to the power-demand surge.",
+   risk:"Execution/cyclical capital goods, lumpy projects, renewables segment volatility."},
+ "NASDAQ:CEG":{ai:4,moat:4,central:3,durab:4,tier:"High",
+   thesis:"Scarce 24/7 carbon-free baseload is the gating constraint for AI campuses. Constellation's nuclear fleet — including the Three Mile Island restart for Microsoft — is irreplaceable supply.",
+   edge:"Largest US nuclear operator; long-dated power contracts at premium prices to hyperscalers.",
+   risk:"Regulatory, power-price swings, deal/timing risk, and the stock already prices a lot of optimism."},
+ "NYSE:VST":{ai:4,moat:3,central:3,durab:3,tier:"High",
+   thesis:"Independent power producer with nuclear + gas well placed to sign data-center supply deals as power demand inflects for the first time in decades.",
+   edge:"Flexible generation fleet in deregulated markets; capital returns.",
+   risk:"Merchant power-price exposure, commodity sensitivity, regulatory."},
+ "NYSE:DLR":{ai:4,moat:4,central:4,durab:4,tier:"High",
+   thesis:"Data-center REIT leasing at record rates and pricing as supply stays tight. A landlord way to own the AI build-out with recurring rent and a land/power bank.",
+   edge:"Global scale, secured power and land — the hardest things to get right now.",
+   risk:"Rate-sensitive (REIT), capital-intensive, and new supply could eventually soften pricing."},
+ "NASDAQ:EQIX":{ai:3,moat:4,central:3,durab:4,tier:"High",
+   thesis:"Interconnection is Equinix's moat — it's where networks and clouds meet, increasingly important for distributed AI/inference at the edge.",
+   edge:"Dense interconnection ecosystem with high switching costs and recurring revenue.",
+   risk:"Less training-GPU exposure than peers; rate sensitivity; capex."},
+ "NASDAQ:KLAC":{ai:4,moat:5,central:4,durab:4,tier:"Highest",
+   thesis:"Process-control (inspection/metrology) oligopoly. As chips get more complex and packaging more exotic, the inspection intensity per wafer rises — KLA captures that.",
+   edge:"~50%+ share of process control with a wide technology lead and strong service annuity.",
+   risk:"WFE cyclicality and China exposure."},
+ "NASDAQ:AMAT":{ai:4,moat:4,central:4,durab:4,tier:"High",
+   thesis:"Broadest wafer-fab-equipment franchise; benefits from every leading-edge and advanced-packaging expansion across all foundries.",
+   edge:"Scale, breadth across deposition/etch/implant, and materials-engineering leadership.",
+   risk:"Cyclical capex, China revenue exposure, memory-spend swings."},
+ "NASDAQ:LRCX":{ai:4,moat:4,central:4,durab:4,tier:"High",
+   thesis:"Etch & deposition leader with outsized leverage to HBM and advanced packaging — exactly the parts of the supply chain that are bottlenecked.",
+   edge:"Dominant in etch/dep, strong installed-base services.",
+   risk:"WFE cyclicality, China, memory concentration."},
+ "NASDAQ:ENTG":{ai:4,moat:4,central:4,durab:3,tier:"High",
+   thesis:"Materials purity and handling — consumable content that grows with every process step and node shrink. A 'razor-blades' play on rising chip complexity.",
+   edge:"Specified into processes (high switching cost) with recurring consumable revenue.",
+   risk:"Leverage from past M&A, cyclical, China."},
+ "NASDAQ:ARM":{ai:4,moat:4,central:4,durab:4,tier:"High",
+   thesis:"CPU IP inside NVIDIA Grace, AWS Graviton and most custom AI silicon. A royalty model that compounds with every chip shipped, regardless of who designs it.",
+   edge:"Near-ubiquitous architecture with a high-margin, asset-light royalty stream that grows with AI-CPU content.",
+   risk:"Very rich valuation, China/Qualcomm licensing disputes, RISC-V as a long-term alternative."},
+ "NASDAQ:SMCI":{ai:5,moat:2,central:3,durab:2,tier:"Speculative",
+   thesis:"Highest-torque way to play AI server/rack volume and liquid-cooled systems — first to market with many NVIDIA designs.",
+   edge:"Speed-to-market and liquid-cooling rack expertise.",
+   risk:"Thin margins/commoditized assembly, an accounting/governance overhang, and brutal competition from Dell/HPE."},
+ "NASDAQ:CRWV":{ai:5,moat:2,central:4,durab:2,tier:"Speculative",
+   thesis:"The purest listed bet on AI compute demand — a neocloud renting GPUs with a huge contracted backlog from OpenAI/Microsoft.",
+   edge:"First-mover scale and a privileged NVIDIA allocation relationship.",
+   risk:"Heavy debt funding GPU purchases, extreme customer concentration (Microsoft/OpenAI), GPU depreciation, and refinancing/lease risk if demand or rates turn."},
+ "NASDAQ:NBIS":{ai:5,moat:2,central:3,durab:2,tier:"Speculative",
+   thesis:"AI-native cloud scaling capacity fast with a cleaner balance sheet than some neocloud peers and a notable Microsoft capacity deal.",
+   edge:"Vertically integrated AI cloud with its own software stack.",
+   risk:"Capital intensity, competition from hyperscalers, and demand/financing concentration."},
+ "NASDAQ:IREN":{ai:5,moat:2,central:2,durab:2,tier:"Speculative",
+   thesis:"Bitcoin-miner-to-AI-cloud pivot converting cheap, powered sites into GPU capacity — leveraged optionality on AI demand and its owned power.",
+   edge:"Owned, energized data-center sites (power is the scarce input).",
+   risk:"Execution on the AI pivot, crypto legacy volatility, financing needs, unproven enterprise sales."},
+ "NYSE:OKLO":{ai:4,moat:3,central:2,durab:1,tier:"Speculative",
+   thesis:"Long-dated optionality on SMRs powering AI campuses; high-profile backing and data-center LOIs.",
+   edge:"Early mover with a fast-reactor design and recurring power-sales model.",
+   risk:"Pre-revenue and pre-licensing — years from commercial operation, with dilution and regulatory risk. Lottery-ticket profile."},
+ "NYSE:SMR":{ai:4,moat:3,central:2,durab:1,tier:"Speculative",
+   thesis:"NuScale has the most NRC-progressed SMR design — leveraged to the nuclear-for-AI narrative.",
+   edge:"Regulatory progress ahead of most SMR peers.",
+   risk:"Pre-commercial economics, project-cancellation history, dilution, long timelines."},
+ "NASDAQ:MPWR":{ai:4,moat:4,central:3,durab:3,tier:"High",
+   thesis:"Power-management ICs increasingly content-rich around GPUs (power delivery near the die). Designs into AI boards lift dollar content per accelerator.",
+   edge:"Highly integrated power modules with strong design-win momentum and margins.",
+   risk:"Customer concentration, competition, and a premium multiple."},
+ "NASDAQ:VICR":{ai:4,moat:3,central:3,durab:2,tier:"Speculative",
+   thesis:"High-density power-conversion modules placed close to the processor — a niche but rising need as GPU power draw explodes.",
+   edge:"Differentiated power-density IP.",
+   risk:"Small, lumpy, execution-dependent, competitive."},
+ "NASDAQ:PLTR":{ai:5,moat:4,central:2,durab:3,tier:"Speculative",
+   thesis:"Leading way to turn frontier models into deployed enterprise/government outcomes via its ontology + AIP — partners with Anthropic to bring Claude into defense/gov.",
+   edge:"Ontology and entrenched government relationships create real switching costs and a deployment moat competitors lack.",
+   risk:"One of the most expensive software stocks anywhere; revenue concentration and sentiment-driven volatility."},
+ "NYSE:NOW":{ai:4,moat:4,central:2,durab:4,tier:"High",
+   thesis:"The enterprise workflow platform best positioned to monetize AI agents on top of sticky, mission-critical software with strong pricing power.",
+   edge:"Deeply embedded system-of-action with high retention; agentic AI is a new upsell layer.",
+   risk:"Premium valuation; seat-based pricing could face pressure as agents replace seats; macro IT-spend sensitivity."},
+ "NYSE:SNOW":{ai:4,moat:3,central:2,durab:3,tier:"High",
+   thesis:"AI is only as good as the data behind it; Snowflake is where enterprise data lives, and Cortex lets customers run Claude and other models against it.",
+   edge:"Data gravity and ecosystem; consumption model scales with AI usage.",
+   risk:"Consumption revenue can be volatile, intense competition from Databricks/hyperscalers, valuation."},
+ "NYSE:CRM":{ai:3,moat:4,central:2,durab:4,tier:"High",
+   thesis:"Agentforce is Salesforce's bet to monetize multi-model AI agents across the largest installed base in enterprise software.",
+   edge:"Distribution and data across CRM workflows; sticky platform.",
+   risk:"Agent monetization unproven at scale; growth maturing; AI could disrupt seat-based SaaS."},
+ "NASDAQ:DDOG":{ai:4,moat:4,central:2,durab:3,tier:"High",
+   thesis:"Every AI app needs observability; Datadog is adding LLM-monitoring as a new product surface on a land-and-expand platform.",
+   edge:"Sticky, multi-product observability platform with strong net retention.",
+   risk:"Usage-based revenue sensitivity, valuation, competition."},
+ "NYSE:NOK":{ai:3,moat:3,central:2,durab:3,tier:"Speculative",
+   thesis:"A telecom-equipment turnaround with an AI-networking optionality kicker. The core mobile/fixed business is mature and fiercely competitive, but the Infinera acquisition adds optical-transport scale for AI data-center interconnect, and NVIDIA's ~$1B stake ties Nokia into AI-RAN/6G and data-center networking. You're buying a cheap, dividend-paying value name where AI is the call option, not the core thesis.",
+   edge:"A deep patent/licensing portfolio that throws off high-margin royalty cash, entrenched global carrier relationships, and now optical-transport assets (Infinera) plus an NVIDIA partnership that lends AI-networking credibility.",
+   risk:"AI/data-center is still a small slice of revenue, so the case leans on execution in a low-growth, brutal market (Ericsson, Huawei, Cisco, Arista). Margins are thin, the turnaround has been slow, and FX and carrier-capex cycles swing results."}
+};
+const W={ai:.30,moat:.30,central:.20,durab:.20};
+function convScore(a){return Math.round((a.ai*W.ai+a.moat*W.moat+a.central*W.central+a.durab*W.durab)/5*100);}
+const tierColor={Highest:"#3fdcb4",High:"#7fb3ff",Speculative:"#f0a98c"};
+
+/* Per-stock trader's playbook — legendary-trader-style breakdowns (methodology, not price prediction).
+   style drives the archetype color: compounder / cyclical / momentum / spec / yield */
+const PLAYBOOK={
+ "NASDAQ:NVDA":{arch:"The anchor — accumulate & hold",style:"compounder",horizon:"Multi-year core position",
+  read:"Trends powerfully but with sharp 20-30% drawdowns inside the bull run. A Stage-2 leader: while it's above a rising 200-day, dips are noise.",
+  buy:["Pullback to the rising 50-day while the weekly Signal stays Buy — the textbook leader re-entry.","A broad-market selloff drags all three Signals to Sell — that fear is the gift; scale in, don't wait for the all-clear.","It reclaims a prior breakout level after a shakeout (a higher low holds)."],
+  add:"Add in thirds on successive pullbacks to the 50-day; never add when it's stretched far above it.",
+  exit:["Trim a slice into vertical, news-fuelled spikes that gap far above the 50-day.","Reduce hard only if it loses the 200-day on a weekly close AND the training-compute thesis cracks."],
+  stop:"Thesis stop, not a price stop: you're wrong if NVIDIA loses its compute dominance — not on ordinary volatility.",
+  dont:"Don't trade in and out of the anchor chasing wiggles — missing the big up-gaps costs more than the dips you dodge.",
+  maxim:"“It was never my thinking that made the big money. It was my sitting.” — Jesse Livermore"},
+ "NASDAQ:AVGO":{arch:"Steady stepper — buy the digestion dip",style:"compounder",horizon:"Multi-year hold",
+  read:"Climbs in steady steps with sharp post-earnings reactions as the custom-ASIC backlog re-rates. A holder's stock with tradeable dips.",
+  buy:["Post-earnings 'ASIC digestion' dips when guidance jitters knock it back toward the 50-day.","Broad semi selloffs while the weekly Signal holds Buy.","Reclaim of a prior consolidation high on volume after a base."],
+  add:"Add on each successful retest of the 50-day; the custom-silicon ramp is multi-year, so guidance wobbles are discounts.",
+  exit:["Trim into euphoric spikes far above the 50-day.","Reduce only if custom-ASIC programs stall or it loses the 200-day on the weekly."],
+  stop:"Thesis stop: you're wrong if the in-house-chip movement reverses back to merchant GPUs.",
+  dont:"Don't dump the whole position on one soft guide — the lumpiness is the feature, not the bug.",
+  maxim:"“Be greedy when others are fearful.” — Warren Buffett"},
+ "NYSE:TSM":{arch:"Grind-higher core — buy the geopolitical scare",style:"compounder",horizon:"Multi-year core position",
+  read:"A grinding uptrend punctuated by geopolitical scares that produce the deepest, fastest dips — and the best entries.",
+  buy:["Taiwan-headline selloffs that drag all three Signals red while the business is unchanged.","Pullbacks to the rising 50-day after earnings.","Reclaim of the 50-day after a geopolitical shakeout."],
+  add:"Scale in on fear spikes; everyone's advanced AI silicon is physically made here, so panic is not impairment.",
+  exit:["Trim only into euphoric runs stretched well above the 50-day.","Reduce on a genuine, sustained Taiwan escalation — a real thesis break, not a headline."],
+  stop:"Thesis stop: a true Taiwan supply disruption. Ordinary geopolitics is buy fuel, not a stop.",
+  dont:"Don't trade every geopolitical headline — you'll sell the bottom and miss the snap-back.",
+  maxim:"“Buy when there's blood in the streets.” — Baron Rothschild"},
+ "NASDAQ:ASML":{arch:"Monopoly compounder — buy the order-number panic",style:"compounder",horizon:"Multi-year hold",
+  read:"Moves in lumps around bookings — a soft order quarter can drop it 10% in a day even though the EUV monopoly is unchanged.",
+  buy:["Order-driven selloffs when a soft bookings quarter is mistaken for a broken thesis.","Pullbacks to the 200-day in a broader WFE downcycle.","Reclaim of the 50-day as the order cycle turns up."],
+  add:"Accumulate on bookings-disappointment dips; one quarter of orders doesn't change a decade-long monopoly.",
+  exit:["Trim into bookings-fuelled euphoria far above the 50-day.","Reduce if China restrictions structurally shrink the served market."],
+  stop:"Thesis stop: a credible EUV competitor (none exists today) or a permanent China-market loss.",
+  dont:"Don't extrapolate one lumpy order quarter into a trend — the bookings line is noisy by design.",
+  maxim:"“The big money is not in the buying and selling, but in the waiting.” — Charlie Munger"},
+ "NASDAQ:SNPS":{arch:"Low-drama compounder — DCA and hold",style:"compounder",horizon:"Long-term hold",
+  read:"A low-drama compounder that rarely gets cheap; it grinds higher and pulls back shallowly.",
+  buy:["Broad software/tech drawdowns that pull it to the 50-day or below.","Any time it holds a rising 200-day after a market scare.","It rarely offers deep discounts — scale in on ordinary pullbacks rather than waiting for perfection."],
+  add:"Dollar-cost average; design-tool intensity rises every node, so time-in beats timing.",
+  exit:["Trim only on extreme, multiple-driven euphoria.","Reduce only on a real thesis break (EDA duopoly disrupted) — essentially never on price alone."],
+  stop:"Thesis stop: loss of the EDA duopoly or a collapse in chip-R&D spend.",
+  dont:"Don't hold out for a 'cheap' price that may never come — quality compounders re-rate upward.",
+  maxim:"“Time in the market beats timing the market.”"},
+ "NASDAQ:CDNS":{arch:"Duopoly compounder — patience over timing",style:"compounder",horizon:"Long-term hold",
+  read:"Trades almost in lockstep with Synopsys — a steady duopoly compounder with shallow pullbacks.",
+  buy:["Market-wide software selloffs back to the 50-day.","Post-earnings dips when long sales cycles spook short-term traders.","Holds above a rising 200-day after a scare."],
+  add:"Accumulate on software-sector drawdowns and sit; it wins whichever chip architecture prevails.",
+  exit:["Trim only into rich, euphoric extensions.","Reduce only on a structural EDA disruption."],
+  stop:"Thesis stop: EDA duopoly breaks or R&D spend collapses.",
+  dont:"Don't trade it actively — the edge here is patience, not timing.",
+  maxim:"“Our favorite holding period is forever.” — Warren Buffett"},
+ "NASDAQ:MU":{arch:"Deep cyclical — buy the washout, sell the boom",style:"cyclical",horizon:"Cycle trade (months to ~2yr)",
+  read:"The most cyclical name here — it booms and busts with the memory cycle, moving in big multi-month swings.",
+  buy:["Maximum pessimism: Signals at Strong Sell, estimates being cut, 'memory glut' headlines — that washout is the entry.","Reclaim of the 50-day as the cycle turns and HBM pricing firms.","Stage-1 base after a long downtrend (flat 200-day starting to curl up)."],
+  add:"Add as the cycle confirms up (price reclaims and holds the 200-day), not on the way down.",
+  exit:["Sell into peak-cycle euphoria — record margins, upgrades, 'shortage forever' narratives.","Reduce on a weekly close back below the 200-day after a long run."],
+  stop:"Cyclical stop: a weekly close below the prior cycle low, or clear evidence HBM is oversupplied.",
+  dont:"Don't buy memory at peak earnings or sell it at peak pessimism — the cycle inverts the obvious.",
+  maxim:"“The time of maximum pessimism is the best time to buy.” — John Templeton"},
+ "NYSE:VRT":{arch:"Momentum leader — trend-follow with a stop",style:"momentum",horizon:"Trend trade / core-with-stops",
+  read:"A high-momentum leader that trends hard then corrects 20-30% violently — it respects the 50-day on the way up.",
+  buy:["Pullbacks to the rising 50-day while the weekly Signal stays Buy.","A clean breakout from a multi-week base on rising volume.","Reclaim of the 50-day after a momentum shakeout."],
+  add:"Average UP into strength on breakouts that hold — add to the winner, never to a loser.",
+  exit:["Take partial profits into parabolic extensions far above the 50-day.","Cut back on a decisive loss of the 50-day with the weekly rolling over."],
+  stop:"Stop below the last clear swing low; momentum names give the trend back fast when they break.",
+  dont:"Don't average down a broken momentum stock hoping it 'comes back' — honour the stop.",
+  maxim:"“Cut your losses short and let your winners run.” — David Ricardo"},
+ "NYSE:ANET":{arch:"Capex-sentiment trend — buy the competitive scare",style:"momentum",horizon:"Trend trade / core-with-stops",
+  read:"Trends with hyperscaler-capex sentiment; spikes on capex upgrades, dips on competitive (Spectrum-X) headlines.",
+  buy:["Pullbacks to the 50-day after a capex-driven run.","Competitive-fear dips that don't change the Ethernet-fabric thesis.","Breakout/reclaim above a prior swing high on volume."],
+  add:"Add on trend pullbacks that hold the 50-day; cut the add if it can't reclaim.",
+  exit:["Trim into hyperscaler-capex-driven vertical spikes.","Reduce if a big buyer in-sources switching, or it loses the 200-day."],
+  stop:"Stop below the recent swing low; thesis cracks if hyperscalers move switching in-house at scale.",
+  dont:"Don't panic-sell every Spectrum-X headline — separate competitive noise from real share loss.",
+  maxim:"“The trend is your friend until the end when it bends.”"},
+ "NASDAQ:AMD":{arch:"Prove-it momentum — buy the proof, not the promise",style:"momentum",horizon:"Trade around a core",
+  read:"A prove-it-each-generation stock — explosive on execution wins, brutal on stumbles.",
+  buy:["Confirmation entries: an MI-cycle product win with price reclaiming the 50-day on volume.","Pullbacks to support after a validated up-leg.","Reclaim of the 200-day signalling a new Stage-2 uptrend."],
+  add:"Add only after execution is proven each cycle; keep the add tranche small until the trend confirms.",
+  exit:["Trim into hype spikes ahead of unproven launches.","Cut on a failed product cycle or loss of the 200-day."],
+  stop:"Hard stop below the last swing low — the CUDA gap means execution misses get punished fast.",
+  dont:"Don't buy AMD on hope before a launch; buy the proof, not the promise.",
+  maxim:"“Don't fall in love with a stock — it doesn't know you own it.”"},
+ "NASDAQ:MRVL":{arch:"Catalyst momentum — buy the lull, not the gap",style:"momentum",horizon:"Catalyst-driven trend trade",
+  read:"Jumps around custom-ASIC design-win news; lumpy and headline-driven between catalysts.",
+  buy:["Weakness in the lulls between design-win news, when the market forgets the ASIC pipeline.","Pullbacks to the 50-day in an uptrend.","Volume reclaim after a base."],
+  add:"Add on confirmed strength post-design-win, not into pre-announcement speculation.",
+  exit:["Trim into ASIC-news euphoria spikes.","Reduce on program delays or loss of the 200-day."],
+  stop:"Stop below the recent swing low; ASIC revenue is program-dependent and can air-pocket.",
+  dont:"Don't chase the post-announcement gap — let it digest back toward the 50-day.",
+  maxim:"“Buy expectation, sell the news — or buy the trend.”"},
+ "NASDAQ:ALAB":{arch:"High-beta growth — buy strength, not dips",style:"momentum",horizon:"Trend trade with stops",
+  read:"High-beta single-theme growth — moves in big percentage swings and rewards buying strength over dip-catching.",
+  buy:["Breakouts from bases on strong volume (this name doesn't reward knife-catching).","Pullbacks that hold a rising 50-day after a confirmed breakout.","Weekly Signal flips back to Buy after a correction."],
+  add:"Add small into confirmed breakouts; keep total size modest given the premium multiple.",
+  exit:["Take profits actively into vertical extensions — high beta round-trips fast.","Cut on a 50-day breakdown."],
+  stop:"Hard stop below the breakout pivot or last swing low; size so a 30% drop won't hurt.",
+  dont:"Don't average down — in high-beta growth that's how small losses become large ones.",
+  maxim:"“In a leading stock, buy strength and sell weakness — not the reverse.” — Mark Minervini"},
+ "NASDAQ:CRDO":{arch:"High-beta trade — defense first",style:"spec",horizon:"Tactical trade only",
+  read:"Very high beta, single-product, customer-concentrated — triple-digit growth but whippy as a trade.",
+  buy:["Only on confirmation: Strong-Buy momentum with rising volume after a base.","Sharp capitulation lows that reclaim the 50-day — never a falling knife.","Keep entries small and staggered."],
+  add:"Barely add — this is a trade, not a build. If you add, only into confirmed strength with the stop raised.",
+  exit:["Take profits quickly into spikes — don't let a high-beta winner round-trip.","Cut fast on a 50-day loss."],
+  stop:"Tight hard stop — a single big customer or a soft quarter can halve it.",
+  dont:"Don't marry it — concentration risk means one customer headline can wreck the chart.",
+  maxim:"“The most important rule is to play great defense, not great offense.” — Paul Tudor Jones"},
+ "NYSE:COHR":{arch:"Leveraged cyclical — buy the cooled narrative",style:"cyclical",horizon:"Cycle trade",
+  read:"Cyclical optics with debt leverage — it overshoots both ways around the transceiver upgrade cycle.",
+  buy:["Transceiver-cycle dips when the 800G→1.6T narrative cools and Signals wash out.","Reclaim of the 50-day as the optics cycle turns up.","Base-building after a long downtrend."],
+  add:"Add as the cycle confirms; the debt load means it moves more than the fundamentals do.",
+  exit:["Sell into cycle-peak euphoria.","Reduce on a 200-day breakdown — leverage cuts both ways."],
+  stop:"Cyclical stop below the prior swing low; watch margins on component pricing.",
+  dont:"Don't hold a leveraged cyclical through a confirmed downcycle hoping for a bounce.",
+  maxim:"“Buy at maximum pessimism, sell at maximum optimism.”"},
+ "NASDAQ:LITE":{arch:"Lumpy optics cyclical — buy the ramp dip",style:"cyclical",horizon:"Cycle trade",
+  read:"A lumpy laser/photonics supplier with telecom-legacy drag — it trades the optics ramp in fits and starts.",
+  buy:["Optics-cycle weakness while the 800G/1.6T ramp is still building.","Pullbacks to the 50-day once a new uptrend is established.","Reclaim after a washout."],
+  add:"Add on a confirmed cycle upturn, not on early-cycle hope.",
+  exit:["Trim into ramp-driven spikes.","Reduce on customer-concentration shocks or a 200-day loss."],
+  stop:"Stop below the recent swing low; legacy telecom can offset datacom strength.",
+  dont:"Don't expect a smooth ride — size for the lumpiness.",
+  maxim:"“Patience is the companion of wisdom.”"},
+ "NYSE:ETN":{arch:"Electrification compounder — buy the industrial dip",style:"compounder",horizon:"Multi-year hold",
+  read:"A steady industrial compounder riding the electrification supercycle — lower beta, shallow pullbacks.",
+  buy:["Broad industrial-cycle pullbacks back to the 50-day.","Market-wide selloffs while the multi-year data-center backlog is intact.","Holds above a rising 200-day after a scare."],
+  add:"Accumulate on cyclical dips and hold the electrification trend.",
+  exit:["Trim only into rich extensions.","Reduce on a genuine capex-cycle rollover (weekly 200-day loss)."],
+  stop:"Thesis stop: the data-center / electrification capex cycle turns down structurally.",
+  dont:"Don't trade a steady compounder like a momentum name — let the backlog work.",
+  maxim:"“Sit tight and be right.” — Jesse Livermore"},
+ "NYSE:GEV":{arch:"Capital-goods trend — ride the backlog",style:"momentum",horizon:"Multi-year trend trade",
+  read:"A capital-goods trend-follower with a multi-year turbine backlog; project lumpiness creates the dips.",
+  buy:["Project-cycle dips to the 50-day in the ongoing uptrend.","Renewables-segment selloffs that don't touch the gas-turbine backlog.","Breakout/reclaim on volume."],
+  add:"Add on trend pullbacks; the turbine backlog gives multi-year visibility.",
+  exit:["Trim into parabolic, narrative-driven extensions.","Reduce on execution stumbles or a 200-day loss."],
+  stop:"Stop below the recent swing low; capital-goods execution risk is real.",
+  dont:"Don't chase vertical power-narrative spikes — wait for the pullback to trend.",
+  maxim:"“Let your winners run, but keep one hand on the trend line.”"},
+ "NASDAQ:CEG":{arch:"Hot narrative — buy the pullback, never the spike",style:"momentum",horizon:"Trend trade with stops",
+  read:"Ran hot on the nuclear-baseload narrative — high beta to power headlines, deep pullbacks when sentiment cools.",
+  buy:["Pullbacks toward the 50-day rather than chasing headline spikes.","Power-sector or rate-driven selloffs while the nuclear contracts stand.","Reclaim after a narrative correction."],
+  add:"Add on trend pullbacks; contracted nuclear supply is the durable part — the multiple is the volatile part.",
+  exit:["Trim into euphoric nuclear-narrative runs.","Reduce on contract/regulatory setbacks or a 200-day loss."],
+  stop:"Stop below the recent swing low; a lot of optimism is already priced in.",
+  dont:"Don't chase CEG after a big run on a power-deal headline — that's where it tops out short-term.",
+  maxim:"“Price is what you pay; value is what you get.” — Warren Buffett"},
+ "NYSE:VST":{arch:"Merchant-power cyclical — buy the energy selloff",style:"cyclical",horizon:"Cycle trade",
+  read:"A merchant power producer — it moves with power prices and the energy sector, more commodity-sensitive than the regulated names.",
+  buy:["Energy-sector selloffs and power-price dips, not after a run.","Reclaim of the 50-day as power-demand momentum builds.","A base after a commodity-driven washout."],
+  add:"Add on sector weakness; capital returns support the floor.",
+  exit:["Sell into power-price / merchant-spread euphoria.","Reduce on a 200-day loss or a power-price downcycle."],
+  stop:"Cyclical stop below the prior swing low; merchant spreads can compress fast.",
+  dont:"Don't buy merchant power after a price spike — you're buying peak spreads.",
+  maxim:"“Buy the producer when the commodity is hated.”"},
+ "NYSE:DLR":{arch:"Rate-sensitive REIT — buy the rate scare, collect yield",style:"yield",horizon:"Income + multi-year hold",
+  read:"A rate-sensitive data-center REIT — it trades with interest-rate fear, not just AI demand. Steady and income-bearing.",
+  buy:["Interest-rate-fear selloffs (rates spike, REITs sell off) are the best entries.","Pullbacks to the 200-day while leasing and pricing stay tight.","Accumulate and collect the dividend while you wait for the trend."],
+  add:"Add on rate-driven dips; you're paid to wait via the yield.",
+  exit:["Trim only into rate-relief euphoria spikes.","Reduce if new supply structurally softens leasing pricing."],
+  stop:"Thesis stop: data-center oversupply, or a permanent rate regime that breaks the model.",
+  dont:"Don't sell a yielding REIT into a rate scare — that's usually the entry, not the exit.",
+  maxim:"“Be fearful when others are greedy, and greedy when others are fearful.” — Warren Buffett"},
+ "NASDAQ:EQIX":{arch:"Interconnection compounder — buy rate weakness",style:"yield",horizon:"Income + multi-year hold",
+  read:"Like DLR but a steadier interconnection compounder with less training-GPU torque — lower beta.",
+  buy:["Rate-driven REIT selloffs back to the 200-day.","Broad market scares while interconnection revenue compounds.","Accumulate for the recurring revenue and yield."],
+  add:"Add on rate weakness; the interconnection moat is sticky.",
+  exit:["Trim only into rate-relief euphoria.","Reduce on a structural interconnection-demand break."],
+  stop:"Thesis stop: the interconnection moat erodes or capex returns collapse.",
+  dont:"Don't expect GPU-like upside — treat it as a steady compounder, not a rocket.",
+  maxim:"“The market transfers money from the impatient to the patient.” — Warren Buffett"},
+ "NASDAQ:KLAC":{arch:"Best-in-class WFE cyclical — fade the cycle",style:"cyclical",horizon:"Cycle trade (quality hold)",
+  read:"The highest-quality equipment name, but still a WFE cyclical — it swings with fab-capex sentiment.",
+  buy:["Capex-down pessimism dips when the market fears a WFE downcycle.","Reclaim of the 50-day as fab spending re-accelerates.","Base-building after a capex-driven correction."],
+  add:"Add into capex-pessimism troughs; process-control share makes it the best house on the cyclical street.",
+  exit:["Trim into up-cycle peaks (record WFE, euphoric capex guides).","Reduce on a weekly 200-day loss as the cycle rolls."],
+  stop:"Cyclical stop below the prior cycle low; China exposure is the swing factor.",
+  dont:"Don't buy WFE at peak capex or sell at trough capex — fade the cycle, don't follow it.",
+  maxim:"“Be greedy only when the cycle is hated.”"},
+ "NASDAQ:AMAT":{arch:"Broad WFE cyclical — buy the capex trough",style:"cyclical",horizon:"Cycle trade",
+  read:"The broadest WFE franchise — it tracks the overall fab-spend cycle, swinging with capex sentiment.",
+  buy:["Capex-cycle troughs when fab-spend pessimism peaks.","Pullbacks to the 50-day in a confirmed up-cycle.","Reclaim after a downcycle base."],
+  add:"Add as the capex cycle confirms upward; breadth means it benefits from every node and packaging build.",
+  exit:["Trim into capex-cycle peaks.","Reduce on memory-spend rollovers or a 200-day loss."],
+  stop:"Cyclical stop below the prior swing low; China revenue is the wildcard.",
+  dont:"Don't extrapolate one strong capex quarter — the cycle always turns.",
+  maxim:"“Sell to the sleeping point — and buy when it hurts.”"},
+ "NASDAQ:LRCX":{arch:"Memory-levered WFE — buy memory pessimism",style:"cyclical",horizon:"Cycle trade",
+  read:"An etch/deposition leader with outsized HBM and packaging leverage — it moves hard with the memory-capex cycle.",
+  buy:["Memory-capex pessimism dips (the market hates memory at the trough).","Reclaim of the 50-day as HBM/packaging spend accelerates.","A base after a memory-driven washout."],
+  add:"Add into memory-capex troughs; the HBM/packaging leverage is the upside torque.",
+  exit:["Trim into memory-up-cycle euphoria.","Reduce on a memory rollover or a 200-day loss."],
+  stop:"Cyclical stop below the prior cycle low.",
+  dont:"Don't buy memory-levered equipment at peak memory earnings.",
+  maxim:"“The time to buy is when there's blood in the streets.” — Baron Rothschild"},
+ "NASDAQ:ENTG":{arch:"Razor-blade cyclical — smoother dips to buy",style:"cyclical",horizon:"Cycle trade (steadier)",
+  read:"A razor-blade materials supplier — consumable revenue smooths the cycle versus pure equipment names.",
+  buy:["Cyclical dips to the 50-day; the consumable model cushions the downside.","Broad semi selloffs while consumable content keeps rising per node.","Reclaim after a correction."],
+  add:"Accumulate on cyclical weakness; specified-in consumables compound with chip complexity.",
+  exit:["Trim into cyclical peaks.","Reduce on a structural slowdown or a 200-day loss."],
+  stop:"Cyclical stop below the swing low; watch the M&A-related leverage.",
+  dont:"Don't treat it as zero-cyclicality — it's smoother, not immune.",
+  maxim:"“Slow and steady compounding wins the chip cycle.”"},
+ "NASDAQ:ARM":{arch:"Expensive royalty — wait for the volatility reset",style:"momentum",horizon:"Multi-year, bought on resets",
+  read:"An expensive, volatile royalty compounder — big swings on the AI-CPU narrative; wait for volatility resets.",
+  buy:["Volatility-reset pullbacks after the multiple cools — size modestly.","Pullbacks to the 50-day once an uptrend re-establishes.","Reclaim of the 200-day after a correction."],
+  add:"Add small on resets; the royalty model compounds over years, so let the valuation breathe first.",
+  exit:["Trim into rich, narrative-driven extensions.","Reduce on licensing-dispute escalation or a 200-day loss."],
+  stop:"Stop below the recent swing low; the premium multiple amplifies any disappointment.",
+  dont:"Don't pay any price — even a great royalty model can be a bad trade at the wrong multiple.",
+  maxim:"“Price is what you pay; value is what you get.” — Warren Buffett"},
+ "NASDAQ:SMCI":{arch:"Whippy trade only — first loss, best loss",style:"spec",horizon:"Tactical trade only",
+  read:"Whippy and headline/accounting-risk-prone — a trade only, never a buy-and-hold.",
+  buy:["Only on confirmed strength reclaiming the 50-day on volume after the dust settles.","Capitulation lows that hold — with a hard stop underneath.","Keep size small."],
+  add:"Don't add meaningfully — this is a tactical trade with a tight leash.",
+  exit:["Take profits fast into rallies — it round-trips violently.","Cut immediately on a 50-day loss or a fresh governance headline."],
+  stop:"Hard, tight stop — accounting/headline risk can gap it down overnight.",
+  dont:"Don't hold SMCI through a governance headline hoping it blows over.",
+  maxim:"“When in doubt, get out. Your first loss is your best loss.”"},
+ "NASDAQ:CRWV":{arch:"Highest-torque AI bet — size for survival",style:"spec",horizon:"High-octane trade",
+  read:"The purest, highest-torque listed bet on AI compute demand — and a debt-funded, customer-concentrated one. Violent both ways.",
+  buy:["Only on confirmation: strength with volume after a base, not falling-knife dips.","Capitulation lows that reclaim the 50-day, with a hard stop.","Tiny, staggered entries."],
+  add:"Don't average down — if anything, add small only into confirmed strength.",
+  exit:["Sell into demand-narrative spikes; don't let it round-trip.","Cut on a 50-day loss or any debt/refinancing or customer-concentration headline."],
+  stop:"Hard stop; size so a 40% drawdown is survivable — the leverage and concentration are extreme.",
+  dont:"Don't size this like a blue chip — it's a high-octane trade on the AI-capex cycle.",
+  maxim:"“Markets can stay irrational longer than you can stay solvent.” — John Maynard Keynes"},
+ "NASDAQ:NBIS":{arch:"Volatile AI cloud — small size, confirmation",style:"spec",horizon:"High-beta trade",
+  read:"A volatile AI-native cloud with a cleaner balance sheet than some peers — still capacity-cycle dependent.",
+  buy:["Confirmation entries on strength after a base.","Capitulation lows reclaiming the 50-day.","Scale small."],
+  add:"Add small only into confirmed strength; keep total size modest.",
+  exit:["Take profits into spikes.","Cut on a 50-day loss or financing / demand-concentration shocks."],
+  stop:"Hard stop; size for high beta.",
+  dont:"Don't confuse a cleaner balance sheet with low risk — it's still a capacity-cycle bet.",
+  maxim:"“Risk comes from not knowing what you're doing.” — Warren Buffett"},
+ "NASDAQ:IREN":{arch:"Highest beta — defense, tiny size",style:"spec",horizon:"Small tactical trade",
+  read:"The highest-beta name here — a crypto-miner-to-AI pivot that swings violently on narrative.",
+  buy:["Only tiny, confirmation-based entries on real strength.","Deep capitulation lows that reclaim the 50-day — with a hard stop.","Expect to be wrong often; keep size minuscule."],
+  add:"Don't add — manage it as a single small lottery-style trade.",
+  exit:["Sell into narrative spikes aggressively.","Cut on a 50-day loss without hesitation."],
+  stop:"Hard, non-negotiable stop; crypto-legacy volatility can gap it hard.",
+  dont:"Don't anchor to a fundamental 'fair value' — this trades on narrative and momentum.",
+  maxim:"“Don't focus on making money; focus on protecting it.” — Paul Tudor Jones"},
+ "NYSE:OKLO":{arch:"Pre-revenue option — venture-style sizing",style:"spec",horizon:"Long-dated optionality",
+  read:"A pre-revenue, pre-licensing SMR lottery ticket — it runs on narrative, with deep drawdowns guaranteed.",
+  buy:["Tiny position only — treat the whole stake as venture-style optionality.","If trading it, only on momentum confirmation with a hard stop.","Expect 50%+ drawdowns as normal."],
+  add:"Don't add — set the position once, small, and let it ride or stop out.",
+  exit:["Take profits into narrative euphoria.","Cut on a clear momentum / 50-day breakdown if trading; otherwise hold the tiny option."],
+  stop:"Either a hard stop (if trading) or pre-accepted total-loss risk (if holding as an option).",
+  dont:"Don't size OKLO as an investment — it's pre-revenue optionality, years from commercial operation.",
+  maxim:"“Only bet what you can afford to lose entirely.”"},
+ "NYSE:SMR":{arch:"Pre-commercial SMR — tiny, news-driven",style:"spec",horizon:"Long-dated optionality",
+  read:"NuScale — the most NRC-progressed SMR, but pre-commercial, dilutive and news-driven.",
+  buy:["Tiny size only, on momentum confirmation if trading.","Capitulation lows with a hard stop.","Accept deep volatility and dilution risk."],
+  add:"Don't add — keep it a single small position.",
+  exit:["Sell into nuclear-narrative spikes.","Cut on a 50-day breakdown or a project-cancellation headline."],
+  stop:"Hard stop; dilution and project risk can re-rate it lower overnight.",
+  dont:"Don't anchor to a 'fair value' for a pre-commercial story stock.",
+  maxim:"“Hope is not a strategy — define your risk before you enter.”"},
+ "NASDAQ:MPWR":{arch:"Quality power-semi — buy the semi dip",style:"compounder",horizon:"Multi-year hold",
+  read:"The holdable-quality name among power semis — a steadier compounder that pulls back shallowly.",
+  buy:["Semis-cycle dips to the 50-day.","Broad selloffs while GPU power-content growth continues.","Holds a rising 200-day after a scare."],
+  add:"Accumulate on semi-cycle dips; rising dollar-content per accelerator is the durable driver.",
+  exit:["Trim into rich extensions.","Reduce on customer-concentration shocks or a 200-day loss."],
+  stop:"Thesis stop: loss of power-design-win momentum; otherwise treat dips as opportunity.",
+  dont:"Don't trade it like a high-beta spec — it's the quality holding in its niche.",
+  maxim:"“The big money is made in the sitting.” — Jesse Livermore"},
+ "NASDAQ:VICR":{arch:"Small-cap lumpy — size for the swings",style:"spec",horizon:"Tactical trade",
+  read:"A small, lumpy power-conversion specialist — it trades in big percentage swings on execution.",
+  buy:["Confirmation entries on strength after a base.","Capitulation lows reclaiming the 50-day.","Small, staggered size."],
+  add:"Add small only into confirmed strength.",
+  exit:["Take profits into spikes.","Cut on a 50-day loss."],
+  stop:"Hard stop below the swing low; small-cap execution risk is real.",
+  dont:"Don't size it like a large-cap — the lumpiness demands small position sizing.",
+  maxim:"“Big positions in small, lumpy stocks is how accounts blow up.”"},
+ "NASDAQ:PLTR":{arch:"Extreme-valuation momentum — only real drawdowns",style:"spec",horizon:"Trade with stops",
+  read:"Sentiment-driven with an extreme valuation — euphoric runs and brutal 30-40% pullbacks.",
+  buy:["Only on real drawdowns — wait for a meaningful correction, not a shallow dip.","Reclaim of the 50-day after a sentiment washout.","Keep size modest given the multiple."],
+  add:"Add only into genuine drawdowns; never chase the vertical sentiment spikes.",
+  exit:["Trim aggressively into parabolic, sentiment-fuelled spikes.","Cut on a clear 50-day breakdown after a blow-off."],
+  stop:"Hard stop below the recent swing low; the valuation magnifies every disappointment.",
+  dont:"Don't chase PLTR on a hype spike — the best entries are when everyone hates the valuation.",
+  maxim:"“Bulls make money, bears make money, pigs get slaughtered.”"},
+ "NYSE:NOW":{arch:"Quality software compounder — buy the risk-off dip",style:"compounder",horizon:"Multi-year hold",
+  read:"A high-quality enterprise-software compounder — it pulls back on rate/risk-off, then resumes its grind.",
+  buy:["Rate-driven or risk-off software selloffs back to the 50-day.","Post-earnings dips on macro-IT-spend jitters while retention stays strong.","Holds a rising 200-day after a scare."],
+  add:"Accumulate on software-sector weakness; agentic-AI monetization is the multi-year upside.",
+  exit:["Trim only into rich, euphoric extensions.","Reduce on a real thesis break (retention / agent-pricing model breaks)."],
+  stop:"Thesis stop: seat-based pricing pressure from agents materially hits growth.",
+  dont:"Don't trade a quality compounder around macro noise — buy the dips and hold.",
+  maxim:"“Buy wonderful companies at fair prices, then sit on your hands.” — Charlie Munger"},
+ "NYSE:SNOW":{arch:"Consumption growth — buy the guidance washout",style:"momentum",horizon:"Trend trade with stops",
+  read:"A consumption-revenue model makes it overshoot on both macro fear and AI optimism — guidance-driven gaps.",
+  buy:["Post-guidance selloffs when consumption guidance spooks the market.","Pullbacks to the 50-day in a confirmed uptrend.","Reclaim after a guidance washout."],
+  add:"Add on confirmed strength post-guidance, not into the falling reaction.",
+  exit:["Trim into AI-optimism spikes.","Cut on a 50-day loss or a consumption-growth deceleration."],
+  stop:"Stop below the recent swing low; consumption revenue can be volatile quarter to quarter.",
+  dont:"Don't catch the post-guidance knife — wait for the reclaim.",
+  maxim:"“Wait for the fat pitch — don't swing at every quarter.” — Warren Buffett"},
+ "NYSE:CRM":{arch:"Mature compounder — buy broad software weakness",style:"compounder",horizon:"Multi-year hold",
+  read:"A mature, lower-beta software grower — shallow pullbacks; Agentforce traction is the swing catalyst.",
+  buy:["Broad software-sector weakness back to the 50-day.","Risk-off market dips while the installed base stays sticky.","Holds a rising 200-day after a scare."],
+  add:"Accumulate on software drawdowns; the distribution moat is the durable part.",
+  exit:["Trim into euphoric extensions.","Reduce if agent monetization clearly disappoints or it loses the 200-day."],
+  stop:"Thesis stop: AI disrupts seat-based SaaS faster than Agentforce can monetize.",
+  dont:"Don't expect hyper-growth — value it as a steady, cash-generative compounder.",
+  maxim:"“The best businesses are the ones you can hold through the noise.”"},
+ "NASDAQ:DDOG":{arch:"Usage-based momentum — buy the software pullback",style:"momentum",horizon:"Trend trade with stops",
+  read:"A usage-based model makes it overshoot on macro fear and AI-optimism alike — a higher-beta software name.",
+  buy:["Software-sector pullbacks back to the 50-day.","Post-earnings dips on usage-growth jitters while net retention holds.","Reclaim of the 50-day after a correction."],
+  add:"Add on confirmed strength after a pullback; LLM-monitoring is the new product surface to watch.",
+  exit:["Trim into AI-optimism spikes.","Cut on a 50-day loss or a net-retention deceleration."],
+  stop:"Stop below the recent swing low; usage revenue is macro-sensitive.",
+  dont:"Don't chase DDOG's vertical AI-driven spikes — wait for the trend pullback.",
+  maxim:"“Let the winner run, but trim when the crowd gets euphoric.”"},
+ "NYSE:NOK":{arch:"Value turnaround + AI option — buy weakness, get paid to wait",style:"yield",horizon:"Multi-year value hold",
+  read:"A low-beta, often range-bound value telecom — it grinds in slow trends and gaps on earnings or big-contract news. The AI-networking angle is upside optionality, not the base case.",
+  buy:["Carrier-capex pessimism or post-earnings selloffs that push it toward the lower end of its range / the 200-day.","Broad-market or telecom-sector washouts while the patent-licensing cash and dividend stay intact.","Reclaim of the 50-day after a base, ideally on an AI-networking or Infinera-synergy catalyst."],
+  add:"Accumulate on weakness in tranches; you're paid to wait via the dividend, and the AI optionality is essentially free at the low end of the range.",
+  exit:["Trim into earnings / contract-driven spikes toward the top of the range — it tends to mean-revert.","Reduce if the turnaround stalls (margins slip, share loss) or it loses the 200-day on a weekly close."],
+  stop:"Thesis stop: the turnaround reverses (sustained margin or share erosion) — not ordinary range volatility. Judge it on execution, not daily price.",
+  dont:"Don't buy Nokia for explosive AI upside or chase a contract-headline pop — the core business sets the floor and the ceiling; the AI part is a bonus.",
+  maxim:"“Know what you own, and know why you own it.” — Peter Lynch"}
+};
+
+/* ---------- Modal + TradingView ---------- */
+const overlay=document.getElementById("overlay");
+const tvWrap=document.getElementById("tv-wrap");
+let curItem=null, curSub="chart";
+
+function tvWidget(src,config){
+  const holder=document.createElement("div");
+  holder.className="tradingview-widget-container";
+  const inner=document.createElement("div");
+  inner.className="tradingview-widget-container__widget";
+  const s=document.createElement("script");
+  s.src=src;s.async=true;s.innerHTML=JSON.stringify(config);
+  holder.appendChild(inner);holder.appendChild(s);
+  return holder;
+}
+
+function renderSub(kind){
+  curSub=kind;
+  document.querySelectorAll(".msub-tab").forEach(t=>t.classList.toggle("active",t.dataset.sub===kind));
+  tvWrap.innerHTML="";
+  const it=curItem; if(!it)return;
+  const sym=it.t;
+  if(kind==="chart"){
+    tvWrap.appendChild(tvWidget("https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js",{
+      symbols:[[it.n, sym+"|6M"]],chartOnly:false,width:"100%",height:430,locale:"en",colorTheme:"dark",
+      autosize:false,showVolume:true,hideDateRanges:false,scalePosition:"right",scaleMode:"Normal",
+      fontFamily:"-apple-system, sans-serif",valuesTracking:"1",changeMode:"price-and-percent",chartType:"area",
+      backgroundColor:"rgba(18,23,36,1)",gridLineColor:"rgba(35,44,64,0.6)",
+      lineColor: it.eco==="anthropic"?"#d97757":(it.eco==="both"?"#a78bfa":"#10a37f")
+    }));
+  }else if(kind==="signals"){
+    const note=document.createElement("div");
+    note.className="sig-note";
+    note.innerHTML="Live buy/sell gauges (TradingView) across three horizons. <b>Read them together:</b> all three green = trend aligned, entries on strength are lower-risk. Daily red while weekly stays green = a pullback inside an uptrend (often a buy zone for quality names). All three red = wait. This reflects momentum <i>now</i> — pair it with Entry/Exit for how to act.";
+    tvWrap.appendChild(note);
+    const grid=document.createElement("div");grid.className="sig-grid";
+    [["Short term","1h"],["Swing (daily)","1D"],["Position (weekly)","1W"]].forEach(([lbl,iv])=>{
+      const cell=document.createElement("div");cell.className="sig-cell";
+      const h=document.createElement("div");h.className="sig-h";h.textContent=lbl;cell.appendChild(h);
+      cell.appendChild(tvWidget("https://s3.tradingview.com/external-embedding/embed-widget-technical-analysis.js",{
+        interval:iv,width:"100%",isTransparent:true,height:330,symbol:sym,showIntervalTabs:false,
+        displayMode:"single",locale:"en",colorTheme:"dark"
+      }));
+      grid.appendChild(cell);
+    });
+    tvWrap.appendChild(grid);
+  }else if(kind==="trade"){
+    tvWrap.appendChild(tvWidget("https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js",{
+      symbol:sym,interval:"D",range:"12M",timezone:"Etc/UTC",theme:"dark",style:"3",locale:"en",
+      width:"100%",height:360,hide_side_toolbar:true,allow_symbol_change:false,save_image:false,
+      studies:[{id:"MASimple@tv-basicstudies",inputs:{length:50}},{id:"MASimple@tv-basicstudies",inputs:{length:200}}],
+      support_host:"https://www.tradingview.com"
+    }));
+    const pb=PLAYBOOK[sym], a=ANALYSIS[sym];
+    const play=document.createElement("div");
+    if(pb){
+      const styleCol={compounder:"#3fdcb4",cyclical:"#7fb3ff",momentum:"#a78bfa",spec:"#f0a98c",yield:"#8fd0a8"}[pb.style]||"#8a93a8";
+      const li=arr=>arr.map(x=>`<li>${x}</li>`).join("");
+      play.innerHTML=`<div class="pb">
+        <div class="pb-head">
+          <span class="pb-arch" style="background:${styleCol}22;border:1px solid ${styleCol};color:${styleCol}">${pb.arch}</span>
+          <span class="pb-horizon">&#9201; ${pb.horizon}</span>
+          ${a?`<span class="conv-tier tier-${a.tier}">${a.tier} conviction</span>`:""}
+        </div>
+        <div class="pb-read"><b>How it moves:</b> ${pb.read}</div>
+        <div class="pb-grid">
+          <div class="pb-sec buy"><div class="pb-sec-h">Buy when</div><ul class="pb-list">${li(pb.buy)}</ul></div>
+          <div class="pb-sec exit"><div class="pb-sec-h">Take profit / exit when</div><ul class="pb-list">${li(pb.exit)}</ul></div>
+        </div>
+        <div class="pb-line add"><div class="pb-k">Add</div><div class="pb-v">${pb.add}</div></div>
+        <div class="pb-line stop"><div class="pb-k">Wrong if</div><div class="pb-v">${pb.stop}</div></div>
+        <div class="pb-line dont"><div class="pb-k">Don't</div><div class="pb-v">${pb.dont}</div></div>
+        <div class="pb-maxim">${pb.maxim}</div>
+        <div class="play-warn">The chart above plots price with the 50-day (fast) and 200-day (slow) moving averages — your live reference for "trend" and "pullback to support." Cross-check the Signals tab. These are rules-of-thumb frameworks, not exact buy/sell prices or a recommendation.</div>
+      </div>`;
+    }else{
+      play.innerHTML=`<div class="pb"><div class="pb-read" style="border-left-color:#8a93a8">No hand-built playbook for this name (the deep dives are curated for the &#9733; Opportunities set). Live read from the chart + Signals tab: buying near a rising 50-day in an uptrend is lower-risk than chasing extensions, and a break below the 200-day is a trend warning.</div></div>`;
+    }
+    tvWrap.appendChild(play);
+  }else if(kind==="fund"){
+    tvWrap.appendChild(tvWidget("https://s3.tradingview.com/external-embedding/embed-widget-financials.js",{
+      colorTheme:"dark",isTransparent:true,displayMode:"regular",width:"100%",height:460,symbol:sym,locale:"en"
+    }));
+  }else if(kind==="thesis"){
+    const a=ANALYSIS[sym];
+    if(a){
+      const sc=convScore(a);
+      tvWrap.innerHTML=`<div class="thesis-block">
+        <h4>Investment thesis</h4><p>${a.thesis}</p>
+        <h4 class="edge">The edge (moat)</h4><p>${a.edge}</p>
+        <h4 class="risk">Key risks</h4><p>${a.risk}</p>
+        <h4>Conviction</h4><p><b>${sc}/100 — ${a.tier} conviction.</b> Scored on AI exposure ${a.ai}/5, moat ${a.moat}/5, ecosystem centrality ${a.central}/5, durability ${a.durab}/5. This is a structured framework, not a price target or recommendation.</p>
+      </div>`;
+    }else{
+      tvWrap.innerHTML=`<div class="no-thesis">No hand-written conviction note for <b>${it.n}</b> yet.<br><br>It sits in the <b>${ecoLabel[it.eco]}</b> supply chain: <i>${it.r}</i>.<br><br>Use the <b>Technicals</b> and <b>Fundamentals</b> tabs for a live read on momentum and financials. The curated deep-dives live on the ★ Opportunities tab.</div>`;
+    }
+  }
+}
+
+function openModal(it){
+  curItem=it;
+  document.getElementById("m-name").textContent=it.n;
+  document.getElementById("m-ticker").textContent= it.t ? it.t : "Private company — no public ticker";
+  document.getElementById("m-role").textContent=it.r;
+  document.getElementById("m-eco").innerHTML=`<span class="ecobadge ${it.eco}">${ecoLabel[it.eco]}</span>`;
+  const conv=document.getElementById("m-conviction");
+  const subbar=document.getElementById("m-subtabs");
+  const links=document.getElementById("m-links");
+  const sym=it.t;
+  const a=sym?ANALYSIS[sym]:null;
+
+  // conviction header
+  if(a){
+    const sc=convScore(a);
+    const col=tierColor[a.tier];
+    const bar=(k,v)=>`<span class="bk">${k}</span><span class="bt"><span class="bf" style="width:${v/5*100}%"></span></span><span class="bv">${v}/5</span>`;
+    conv.innerHTML=`<div class="conv-card"><div class="conv-top">
+      <div class="conv-score" style="background:${col}22;border:1px solid ${col};color:${col}">
+        <span class="num">${sc}</span><span class="lbl">/100</span></div>
+      <div style="display:flex;flex-direction:column;gap:7px;flex:1;min-width:220px">
+        <span class="conv-tier tier-${a.tier}" style="align-self:flex-start">${a.tier} conviction</span>
+        <div class="conv-bars">
+          ${bar("AI exposure",a.ai)}${bar("Moat",a.moat)}${bar("Centrality",a.central)}${bar("Durability",a.durab)}
+        </div>
+      </div></div></div>`;
+  }else{conv.innerHTML="";}
+
+  if(sym){
+    subbar.style.display="";
+    renderSub("chart");
+    const dash=sym.replace(":","-");
+    links.innerHTML=`
+      <a href="https://www.tradingview.com/symbols/${dash}/" target="_blank" rel="noopener">TradingView ↗</a>
+      <a href="https://finance.yahoo.com/quote/${encodeURIComponent(sym.split(":")[1])}" target="_blank" rel="noopener">Yahoo Finance ↗</a>
+      <a href="https://www.google.com/search?q=${encodeURIComponent(it.n+" stock "+sym.split(":")[1])}" target="_blank" rel="noopener">Google ↗</a>`;
+  }else{
+    subbar.style.display="none";
+    tvWrap.innerHTML=`<div class="priv-box">This company is <b>private</b> — no public stock to chart.<br><br>Role in the AI stack: <i>${it.r}</i></div>`;
+    links.innerHTML=`<a href="https://www.google.com/search?q=${encodeURIComponent(it.n+" company funding")}" target="_blank" rel="noopener">Search the web ↗</a>`;
+  }
+  overlay.classList.add("open");
+}
+document.querySelectorAll(".msub-tab").forEach(t=>t.addEventListener("click",()=>renderSub(t.dataset.sub)));
+function closeModal(){overlay.classList.remove("open");tvWrap.innerHTML="";curItem=null;}
+document.getElementById("m-close").addEventListener("click",closeModal);
+overlay.addEventListener("click",e=>{if(e.target===overlay)closeModal();});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal();});
+
+/* ---------- Search + filters ---------- */
+const search=document.getElementById("search");
+let curEco="all";
+const pills=[...document.querySelectorAll("#filters .pill")];
+pills.forEach(p=>p.addEventListener("click",()=>{
+  pills.forEach(x=>x.classList.remove("active"));
+  p.classList.add("active");
+  curEco=p.dataset.eco;
+  applyFilter();
+}));
+search.addEventListener("input",applyFilter);
+
+function applyFilter(){
+  const q=search.value.trim().toLowerCase();
+  document.querySelectorAll(".layer").forEach(sec=>{
+    let visible=0;
+    sec.querySelectorAll(".chip").forEach(c=>{
+      const matchQ = !q || c.dataset.name.includes(q)||c.dataset.role.includes(q)||c.dataset.ticker.includes(q);
+      let matchEco=true;
+      if(curEco==="public") matchEco = c.dataset.public==="1";
+      else if(curEco!=="all") matchEco = (curEco==="both") ? c.dataset.eco==="both" : c.dataset.eco===curEco;
+      const show=matchQ&&matchEco;
+      c.classList.toggle("hidden",!show);
+      if(show)visible++;
+    });
+    sec.classList.toggle("empty",visible===0);
+    const badge=sec.querySelector(".badge");
+    if(badge)badge.textContent=visible;
+  });
+}
+
+/* ---------- Tabs ---------- */
+const tabs=[...document.querySelectorAll("#tabs .tab")];
+const views={layers:document.getElementById("layersView"),opp:document.getElementById("oppView"),flow:document.getElementById("flowView"),rank:document.getElementById("rankView")};
+const layerControls=document.getElementById("layerControls");
+let flowDrawn=false,oppDrawn=false;
+tabs.forEach(t=>t.addEventListener("click",()=>{
+  tabs.forEach(x=>x.classList.remove("active"));
+  t.classList.add("active");
+  Object.values(views).forEach(v=>v.classList.remove("active"));
+  views[t.dataset.view].classList.add("active");
+  layerControls.style.display = t.dataset.view==="layers" ? "" : "none";
+  if(t.dataset.view==="flow" && !flowDrawn){drawFlow();flowDrawn=true;}
+  if(t.dataset.view==="opp" && !oppDrawn){renderOpps();oppDrawn=true;}
+}));
+
+/* ---------- Flow diagram ---------- */
+const FCOLS=[
+  {label:"AI Labs", nodes:[
+    {id:"oai", n:"OpenAI", t:null, eco:"openai", r:"GPT, ChatGPT, API"},
+    {id:"ant", n:"Anthropic", t:null, eco:"anthropic", r:"Claude, Claude API"},
+  ]},
+  {label:"Cloud / Infra", nodes:[
+    {id:"msft", n:"Microsoft", t:"NASDAQ:MSFT", eco:"openai", r:"Azure, exclusive compute history"},
+    {id:"orcl", n:"Oracle", t:"NYSE:ORCL", eco:"openai", r:"OCI + Stargate capacity"},
+    {id:"crwv", n:"CoreWeave", t:"NASDAQ:CRWV", eco:"openai", r:"GPU cloud, Stargate projects"},
+    {id:"aws", n:"Amazon AWS", t:"NASDAQ:AMZN", eco:"both", r:"Anthropic primary cloud; OpenAI extra capacity"},
+    {id:"goog", n:"Google Cloud", t:"NASDAQ:GOOGL", eco:"anthropic", r:"TPU capacity, Vertex AI"},
+  ]},
+  {label:"Accelerators", nodes:[
+    {id:"nvda", n:"NVIDIA", t:"NASDAQ:NVDA", eco:"both", r:"GPUs + networking for both labs"},
+    {id:"amd", n:"AMD", t:"NASDAQ:AMD", eco:"openai", r:"Instinct MI450, 6GW deal"},
+    {id:"avgo", n:"Broadcom", t:"NASDAQ:AVGO", eco:"both", r:"OpenAI custom chip + Google TPU supply"},
+    {id:"trn", n:"AWS Trainium", t:"NASDAQ:AMZN", eco:"anthropic", r:"Up to 5GW for Anthropic"},
+    {id:"tpu", n:"Google TPU", t:"NASDAQ:GOOGL", eco:"anthropic", r:"TPU v5p/v6/Ironwood pods"},
+  ]},
+  {label:"Foundry / Memory", nodes:[
+    {id:"tsmc", n:"TSMC", t:"NYSE:TSM", eco:"both", r:"Leading-edge foundry + CoWoS for all"},
+    {id:"hbm", n:"HBM trio", t:"KRX:000660", eco:"both", r:"SK hynix / Micron / Samsung — HBM bottleneck"},
+  ]},
+  {label:"Power / Physical", nodes:[
+    {id:"pwr", n:"Power & Cooling", t:"NYSE:VRT", eco:"both", r:"Vertiv / Schneider / Eaton et al."},
+  ]},
+];
+const FLINKS=[
+  ["oai","msft","openai"],["oai","orcl","openai"],["oai","crwv","openai"],["oai","aws","openai"],
+  ["oai","nvda","openai"],["oai","amd","openai"],["oai","avgo","openai"],
+  ["ant","aws","anthropic"],["ant","goog","anthropic"],["ant","nvda","anthropic"],["ant","avgo","anthropic"],
+  ["msft","nvda","openai"],["orcl","nvda","openai"],["crwv","nvda","openai"],
+  ["aws","trn","anthropic"],["aws","nvda","anthropic"],["goog","tpu","anthropic"],["goog","avgo","anthropic"],
+  ["nvda","tsmc","both"],["amd","tsmc","both"],["avgo","tsmc","both"],["trn","tsmc","both"],["tpu","tsmc","both"],
+  ["tsmc","hbm","both"],["tsmc","pwr","both"],["hbm","pwr","both"],
+];
+const ECOSTROKE={openai:"#10a37f",anthropic:"#d97757",both:"#a78bfa"};
+const ECORECT={openai:"rgba(16,163,127,.20)",anthropic:"rgba(217,119,87,.20)",both:"rgba(167,139,250,.20)"};
+
+function drawFlow(){
+  const NW=156,NH=46,SLOT=70,CONTENT=Math.max(...FCOLS.map(c=>c.nodes.length))*SLOT;
+  const TOP=44, H=CONTENT+TOP+20, W=1180, colX=[24,290,560,830,1010];
+  const pos={};
+  const svg=document.getElementById("flowSvg");
+  svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
+  svg.setAttribute("width","100%");
+  svg.setAttribute("height",H);
+  let links="",nodes="",labels="";
+  FCOLS.forEach((col,ci)=>{
+    const x=colX[ci];
+    const colH=col.nodes.length*SLOT;
+    const startY=TOP+(CONTENT-colH)/2;
+    labels+=`<text class="flow-col-label" x="${x+NW/2}" y="22" text-anchor="middle">${col.label}</text>`;
+    col.nodes.forEach((node,ni)=>{
+      const y=startY+ni*SLOT;
+      pos[node.id]={x,y,w:NW,h:NH};
+      const tkr=node.t?node.t.split(":")[1]:"PRIVATE";
+      nodes+=`<g class="fnode" data-id="${node.id}">
+        <rect x="${x}" y="${y}" width="${NW}" height="${NH}" rx="9" fill="${ECORECT[node.eco]}" stroke="${ECOSTROKE[node.eco]}" stroke-width="1.5"/>
+        <text x="${x+11}" y="${y+20}" fill="#e6ebf4">${node.n}</text>
+        <text class="ftk" x="${x+11}" y="${y+35}" fill="${node.t?'#5b9dff':'#8a95ad'}">${tkr}</text>
+      </g>`;
+    });
+  });
+  FLINKS.forEach(([a,b,eco])=>{
+    const s=pos[a],t=pos[b];
+    if(!s||!t)return;
+    const x1=s.x+s.w,y1=s.y+s.h/2,x2=t.x,y2=t.y+t.h/2;
+    const mx=(x1+x2)/2;
+    links+=`<path class="flink" d="M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}" stroke="${ECOSTROKE[eco]}" stroke-width="2"/>`;
+  });
+  svg.innerHTML=links+labels+nodes;
+  svg.querySelectorAll(".fnode").forEach(g=>{
+    g.addEventListener("click",()=>{
+      const id=g.dataset.id;
+      let found;
+      FCOLS.forEach(c=>c.nodes.forEach(n=>{if(n.id===id)found=n;}));
+      if(found)openModal(found);
+    });
+  });
+}
+
+/* ---------- Dependency rankings ---------- */
+const RANKINGS={
+  openai:[
+    {n:"NVIDIA", t:"NASDAQ:NVDA", eco:"both", w:"Main GPU/system supplier & investor — ~10GW partnership"},
+    {n:"Microsoft", t:"NASDAQ:MSFT", eco:"openai", w:"Biggest historical strategic, cloud & capital partner"},
+    {n:"Oracle", t:"NYSE:ORCL", eco:"openai", w:"Critical for Stargate & OCI capacity"},
+    {n:"AMD", t:"NASDAQ:AMD", eco:"openai", w:"Strategic NVIDIA alternative — 6GW Instinct deal"},
+    {n:"Broadcom", t:"NASDAQ:AVGO", eco:"both", w:"Crucial for OpenAI's 10GW custom accelerator path"},
+    {n:"SoftBank", t:"TSE:9984", eco:"openai", w:"Stargate financing for enormous infra spend"},
+    {n:"TSMC", t:"NYSE:TSM", eco:"both", w:"Physically manufactures the leading-edge chips"},
+    {n:"SK hynix (HBM)", t:"KRX:000660", eco:"both", w:"HBM memory — the shared hardware bottleneck"},
+  ],
+  anthropic:[
+    {n:"Amazon / AWS", t:"NASDAQ:AMZN", eco:"both", w:"Primary training/cloud provider — Trainium up to 5GW"},
+    {n:"Alphabet / Google", t:"NASDAQ:GOOGL", eco:"anthropic", w:"TPU capacity — powerful non-NVIDIA path"},
+    {n:"Broadcom", t:"NASDAQ:AVGO", eco:"both", w:"Key to the Google TPU supply Anthropic relies on"},
+    {n:"NVIDIA", t:"NASDAQ:NVDA", eco:"both", w:"Still part of the diversified compute mix"},
+    {n:"TSMC", t:"NYSE:TSM", eco:"both", w:"Foundry & packaging backbone for every chip"},
+    {n:"SK hynix (HBM)", t:"KRX:000660", eco:"both", w:"HBM memory — same bottleneck as everyone"},
+  ],
+};
+function renderRankings(){
+  const grid=document.getElementById("rankGrid");
+  const build=(eco,title)=>{
+    const col=document.createElement("div");
+    col.className="rank-col "+(eco==="openai"?"o":"a");
+    let html=`<h3><span class="dot ${eco==="openai"?"o":"a"}"></span>${title}</h3>`;
+    RANKINGS[eco].forEach((it,i)=>{
+      const tkr=it.t?it.t.split(":")[1]:"PRIVATE";
+      html+=`<div class="rank-item" data-eco="${eco}" data-i="${i}">
+        <div class="rank-num">${i+1}</div>
+        <div class="rank-body">
+          <div class="rn">${it.n} <span class="rtk ${it.t?'':'priv'}">${tkr}</span></div>
+          <div class="rwhy">${it.w}</div>
+        </div></div>`;
+    });
+    col.innerHTML=html;
+    col.querySelectorAll(".rank-item").forEach(el=>{
+      el.addEventListener("click",()=>{
+        const it=RANKINGS[el.dataset.eco][+el.dataset.i];
+        openModal({n:it.n,t:it.t,eco:it.eco,r:it.w});
+      });
+    });
+    return col;
+  };
+  grid.appendChild(build("openai","OpenAI — top dependencies"));
+  grid.appendChild(build("anthropic","Anthropic — top dependencies"));
+}
+renderRankings();
+
+/* ---------- Opportunities tab ---------- */
+const CO_INDEX={};
+LAYERS.forEach(l=>l.items.forEach(it=>{ if(it.t) CO_INDEX[it.t]={n:it.n,eco:it.eco,r:it.r,layer:l.title,t:it.t}; }));
+let oppTier="all";
+function renderOpps(){
+  const grid=document.getElementById("oppGrid");
+  const rows=Object.keys(ANALYSIS).map(sym=>{
+    const a=ANALYSIS[sym], meta=CO_INDEX[sym]||{n:sym.split(":")[1],eco:"both",r:"",layer:"",t:sym};
+    return {sym,a,meta,score:convScore(a)};
+  }).sort((x,y)=> y.score-x.score || x.a.tier.localeCompare(y.a.tier));
+  grid.innerHTML="";
+  rows.forEach(({sym,a,meta,score})=>{
+    const col=tierColor[a.tier];
+    const card=document.createElement("div");
+    card.className="opp-card";card.dataset.tier=a.tier;
+    card.innerHTML=`
+      <div class="opp-head">
+        <div class="oscore" style="background:${col}22;border:1px solid ${col};color:${col}"><span class="n">${score}</span><span style="font-size:8px;opacity:.8">/100</span></div>
+        <div>
+          <div class="oname">${meta.n} <span class="otk">${sym.split(":")[1]}</span></div>
+          <div class="olayer">${meta.layer}</div>
+          <span class="conv-tier tier-${a.tier}" style="display:inline-block;margin-top:6px;font-size:10.5px">${a.tier} conviction</span>
+        </div>
+      </div>
+      <div class="opp-thesis">${a.thesis}</div>
+      <div class="opp-meta">
+        <span class="ecobadge ${meta.eco}" style="margin-top:0">${ecoLabel[meta.eco]}</span>
+        <span style="font-size:11px;color:var(--muted)">AI ${a.ai} · Moat ${a.moat} · Central ${a.central} · Durab ${a.durab}</span>
+      </div>`;
+    card.addEventListener("click",()=>openModal({n:meta.n,t:sym,eco:meta.eco,r:meta.r}));
+    grid.appendChild(card);
+  });
+  applyOppFilter();
+}
+function applyOppFilter(){
+  document.querySelectorAll(".opp-card").forEach(c=>{
+    c.classList.toggle("hidden", oppTier!=="all" && c.dataset.tier!==oppTier);
+  });
+}
+document.querySelectorAll("#oppFilters .opill").forEach(p=>p.addEventListener("click",()=>{
+  document.querySelectorAll("#oppFilters .opill").forEach(x=>x.classList.remove("active"));
+  p.classList.add("active");oppTier=p.dataset.tier;applyOppFilter();
+}));
+</script>
+</body>
+</html>
