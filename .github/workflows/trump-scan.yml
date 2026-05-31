@@ -1,0 +1,39 @@
+name: Trump Stock Scanner
+
+on:
+  schedule:
+    # Every 15 minutes during US market hours (Mon-Fri, 9am-5pm ET = 13:00-21:00 UTC)
+    - cron: '*/15 13-21 * * 1-5'
+  workflow_dispatch: {}  # Manual trigger button
+
+permissions:
+  contents: write
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run scanner
+        run: python scripts/scan_trump_tweets.py
+
+      - name: Check for changes
+        id: changes
+        run: |
+          git diff --quiet && echo "changed=false" >> $GITHUB_OUTPUT || echo "changed=true" >> $GITHUB_OUTPUT
+
+      - name: Commit and push
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          git config user.name "trump-stock-scanner[bot]"
+          git config user.email "bot@users.noreply.github.com"
+          git add ai_ecosystem_map.html
+          git commit -m "Auto-add Trump stock mention(s) — $(date -u +%Y-%m-%d)"
+          git push
