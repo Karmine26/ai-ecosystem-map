@@ -334,6 +334,8 @@
   .trump-card .tc-src.policy{background:rgba(212,168,67,.16);color:#d4a843;border:1px solid rgba(212,168,67,.4)}
   .trump-card .tc-src.truth{background:rgba(88,101,242,.16);color:#5865f2;border:1px solid rgba(88,101,242,.4)}
   .trump-card .tc-date{font-size:11px;color:var(--muted)}
+  .trump-card .tc-link{font-size:11px;color:#1d9bf0;text-decoration:none;font-weight:600;margin-left:auto;padding:2px 8px;border:1px solid rgba(29,155,240,.4);border-radius:6px;background:rgba(29,155,240,.1)}
+  .trump-card .tc-link:hover{background:rgba(29,155,240,.22);text-decoration:none}
   .trump-card.hidden{display:none}
   .trump-live{margin-top:18px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px 18px;font-size:13px;color:var(--muted);line-height:1.6}
   .trump-live a{color:#1d9bf0;text-decoration:none;font-weight:600}
@@ -1375,11 +1377,16 @@ const PLAYBOOK={
 
 /* Trump Stocks watchlist — auto-updated by GitHub Actions scanner */
 const TRUMP_STOCKS=[
-  {t:"NYSE:NOW",    n:"ServiceNow", reason:"Named in Trump federal AI modernization push; government IT contract beneficiary",               date:"2025-06-01", src:"policy"},
-  {t:"NYSE:DELL",   n:"Dell",       reason:"Cited as key Stargate server supplier in Trump administration AI infrastructure presser",           date:"2025-05-15", src:"tweet"},
-  {t:"NASDAQ:PLTR", n:"Palantir",   reason:"Repeated Trump praise for defense AI capabilities; major government contract wins under admin",     date:"2025-04-20", src:"tweet"},
-  {t:"NASDAQ:INTC", n:"Intel",      reason:"Central to Trump bring-chips-home rhetoric and CHIPS Act domestic manufacturing push",          date:"2025-03-10", src:"policy"},
-  {t:"NYSE:IBM",    n:"IBM",        reason:"Federal AI and quantum computing contract mentions in multiple Trump policy addresses",             date:"2025-02-28", src:"tweet"},
+  {t:"NYSE:NOW",    n:"ServiceNow", reason:"Named in Trump federal AI modernization push; government IT contract beneficiary",
+    date:"2025-06-01", src:"policy", url:"https://x.com/search?q=from%3Arealdonaldtrump%20ServiceNow&f=live"},
+  {t:"NYSE:DELL",   n:"Dell",       reason:"Cited as key Stargate server supplier in Trump administration AI infrastructure presser",
+    date:"2025-05-15", src:"tweet",  url:"https://x.com/search?q=from%3Arealdonaldtrump%20Dell%20Stargate&f=live"},
+  {t:"NASDAQ:PLTR", n:"Palantir",   reason:"Repeated Trump praise for defense AI capabilities; major government contract wins under admin",
+    date:"2025-04-20", src:"tweet",  url:"https://x.com/search?q=from%3Arealdonaldtrump%20Palantir&f=live"},
+  {t:"NASDAQ:INTC", n:"Intel",      reason:"Central to Trump bring-chips-home rhetoric and CHIPS Act domestic manufacturing push",
+    date:"2025-03-10", src:"policy", url:"https://x.com/search?q=from%3Arealdonaldtrump%20Intel%20chips&f=live"},
+  {t:"NYSE:IBM",    n:"IBM",        reason:"Federal AI and quantum computing contract mentions in multiple Trump policy addresses",
+    date:"2025-02-28", src:"tweet",  url:"https://x.com/search?q=from%3Arealdonaldtrump%20IBM&f=live"},
 ];
 
 /* ---------- Modal + TradingView ---------- */
@@ -1478,10 +1485,11 @@ function renderSub(kind){
     }));
     const vl=document.createElement("div");vl.className="vol-label";vl.textContent="Market Volatility (VIX) — broad fear gauge";
     tvWrap.appendChild(vl);
-    tvWrap.appendChild(tvWidget("https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js",{
-      symbol:"CBOE:VIX",interval:"D",range:"6M",timezone:"Etc/UTC",theme:"dark",style:"3",locale:"en",
-      width:"100%",height:200,hide_side_toolbar:true,allow_symbol_change:false,save_image:false,
-      studies:[],support_host:"https://www.tradingview.com"
+    tvWrap.appendChild(tvWidget("https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js",{
+      symbols:[["VIX","CBOE:VIX|6M"]],chartOnly:false,width:"100%",height:220,locale:"en",colorTheme:"dark",
+      autosize:false,showVolume:false,hideDateRanges:false,scalePosition:"right",scaleMode:"Normal",
+      fontFamily:"-apple-system, sans-serif",valuesTracking:"1",changeMode:"price-and-percent",chartType:"area",
+      backgroundColor:"rgba(18,23,36,1)",gridLineColor:"rgba(35,44,64,0.6)",lineColor:"#f0a98c"
     }));
     const vn=document.createElement("div");vn.className="vol-note";
     vn.innerHTML="<b>Reading the volatility panel:</b> The top chart shows the stock with <b>Bollinger Bands</b> (expanding bands = rising volatility, squeezing bands = compression before a move), a <b>20-day moving average</b> (trend context), and <b>ATR</b> (average daily range — higher = more volatile). The bottom chart is the <b>VIX</b> (market-wide fear index — spikes = panic, dips = complacency). All data is 15-min delayed via TradingView. These are <i>realized</i> volatility proxies, not options-implied IV.";
@@ -1794,6 +1802,7 @@ function renderTrump(){
       <div class="tc-meta">
         <span class="tc-src ${ts.src}">${ts.src==="tweet"?"X / Tweet":ts.src==="truth"?"Truth Social":ts.src==="policy"?"Policy":"Mention"}</span>
         <span class="tc-date">${ts.date}</span>
+        ${ts.url?`<a class="tc-link" href="${ts.url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">View source &#8599;</a>`:""}
       </div>`;
     // find the full company data from LAYERS for the modal
     const layerItem=CO_INDEX[ts.t];
