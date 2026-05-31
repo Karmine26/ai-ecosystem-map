@@ -316,6 +316,34 @@
   .opp-meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:auto;padding-top:4px}
   .opp-card.hidden{display:none}
 
+  /* Trump Stocks tab */
+  .trump-intro{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:16px}
+  .trump-intro h2{margin:0 0 8px;font-size:18px;display:flex;align-items:center;gap:10px}
+  .trump-intro h2 .flag{font-size:22px}
+  .trump-intro p{margin:0 0 10px;font-size:13px;color:var(--muted);line-height:1.6;max-width:920px}
+  .trump-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
+  .trump-card{background:var(--panel);border:1px solid var(--line);border-left:3px solid #d4a843;border-radius:14px;padding:15px 16px;cursor:pointer;transition:.14s;display:flex;flex-direction:column;gap:8px}
+  .trump-card:hover{transform:translateY(-3px);box-shadow:var(--shadow);border-color:#3a465f}
+  .trump-card .tc-top{display:flex;align-items:center;gap:12px}
+  .trump-card .tc-name{font-size:15.5px;font-weight:700}
+  .trump-card .tc-tk{font-size:11px;font-family:ui-monospace,Menlo,monospace;color:var(--accent);background:var(--chip);padding:1px 7px;border-radius:5px}
+  .trump-card .tc-reason{font-size:12.5px;color:var(--txt);line-height:1.5}
+  .trump-card .tc-meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:auto;padding-top:4px}
+  .trump-card .tc-src{font-size:10.5px;padding:2px 9px;border-radius:999px;font-weight:700}
+  .trump-card .tc-src.tweet{background:rgba(29,155,240,.16);color:#1d9bf0;border:1px solid rgba(29,155,240,.4)}
+  .trump-card .tc-src.policy{background:rgba(212,168,67,.16);color:#d4a843;border:1px solid rgba(212,168,67,.4)}
+  .trump-card .tc-src.truth{background:rgba(88,101,242,.16);color:#5865f2;border:1px solid rgba(88,101,242,.4)}
+  .trump-card .tc-date{font-size:11px;color:var(--muted)}
+  .trump-card.hidden{display:none}
+  .trump-live{margin-top:18px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px 18px;font-size:13px;color:var(--muted);line-height:1.6}
+  .trump-live a{color:#1d9bf0;text-decoration:none;font-weight:600}
+  .trump-live a:hover{text-decoration:underline}
+
+  /* Volatility sub-tab */
+  .vol-note{font-size:12px;color:var(--muted);padding:4px 4px 10px;line-height:1.6}
+  .vol-note b{color:var(--txt)}
+  .vol-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);padding:12px 0 4px}
+
   /* ---------- Mobile / small-screen ---------- */
   @media(max-width:640px){
     header.top{padding:18px 14px 8px}
@@ -362,6 +390,9 @@
     .opp-intro h2{font-size:16px}
     .rank-grid{grid-template-columns:1fr}
     .flow-legend{font-size:11px;gap:10px 14px}
+    .trump-grid{grid-template-columns:1fr}
+    .trump-intro h2{font-size:16px}
+    .trump-intro{padding:14px 15px}
   }
   /* Very narrow phones: one chip per row for readability */
   @media(max-width:380px){
@@ -387,6 +418,7 @@
   <div class="tab" data-view="opp">★ Opportunities</div>
   <div class="tab" data-view="flow">Flow Diagram</div>
   <div class="tab" data-view="rank">Dependency Rankings</div>
+  <div class="tab" data-view="trump">Trump Stocks</div>
 </div>
 
 <div class="controls" id="layerControls">
@@ -436,6 +468,20 @@
     </div>
     <div class="opp-grid" id="oppGrid"></div>
   </section>
+
+  <section class="view" id="trumpView">
+    <div class="trump-intro">
+      <h2><span class="flag">🇺🇸</span> Trump Stock Watchlist</h2>
+      <p>Stocks Trump has mentioned, praised, or that move on his policy actions and social-media posts. Each entry tracks the reason it's on the list and when it was added. Click any card for live charts, signals, playbook and fundamentals.</p>
+      <p style="font-size:12px;color:#d4a843">This list is updated via automated scanning of Trump's public posts. New stock mentions are detected and added automatically.</p>
+      <div class="disclaimer">This is a watchlist of stocks associated with presidential commentary — <b>not a recommendation</b> to buy or sell. Presidential mentions can cause short-term volatility in both directions. Do your own research.</div>
+    </div>
+    <div class="trump-grid" id="trumpGrid"></div>
+    <div class="trump-live">
+      <b>Live feed:</b> <a href="https://x.com/search?q=from%3Arealdonaldtrump%20(stock%20OR%20AI%20OR%20tech%20OR%20company%20OR%20billion%20OR%20jobs%20OR%20invest%20OR%20%24)&f=live" target="_blank" rel="noopener">View Trump's latest stock-related posts on X ↗</a> &nbsp;|&nbsp;
+      <a href="https://truthsocial.com/@realDonaldTrump" target="_blank" rel="noopener">Truth Social ↗</a>
+    </div>
+  </section>
 </main>
 
 <div class="overlay" id="overlay">
@@ -455,6 +501,7 @@
       <div class="msub-tab" data-sub="signals">Signals</div>
       <div class="msub-tab" data-sub="trade">Playbook</div>
       <div class="msub-tab" data-sub="fund">Fundamentals</div>
+      <div class="msub-tab" data-sub="vol">Volatility</div>
       <div class="msub-tab" data-sub="thesis">Analysis</div>
     </div>
     <div class="modal-body">
@@ -1326,6 +1373,15 @@ const PLAYBOOK={
   maxim:"“Know what you own, and know why you own it.” — Peter Lynch"}
 };
 
+/* Trump Stocks watchlist — auto-updated by GitHub Actions scanner */
+const TRUMP_STOCKS=[
+  {t:"NYSE:NOW",    n:"ServiceNow", reason:"Named in Trump federal AI modernization push; government IT contract beneficiary",               date:"2025-06-01", src:"policy"},
+  {t:"NYSE:DELL",   n:"Dell",       reason:"Cited as key Stargate server supplier in Trump administration AI infrastructure presser",           date:"2025-05-15", src:"tweet"},
+  {t:"NASDAQ:PLTR", n:"Palantir",   reason:"Repeated Trump praise for defense AI capabilities; major government contract wins under admin",     date:"2025-04-20", src:"tweet"},
+  {t:"NASDAQ:INTC", n:"Intel",      reason:"Central to Trump bring-chips-home rhetoric and CHIPS Act domestic manufacturing push",          date:"2025-03-10", src:"policy"},
+  {t:"NYSE:IBM",    n:"IBM",        reason:"Federal AI and quantum computing contract mentions in multiple Trump policy addresses",             date:"2025-02-28", src:"tweet"},
+];
+
 /* ---------- Modal + TradingView ---------- */
 const overlay=document.getElementById("overlay");
 const tvWrap=document.getElementById("tv-wrap");
@@ -1409,6 +1465,27 @@ function renderSub(kind){
     tvWrap.appendChild(tvWidget("https://s3.tradingview.com/external-embedding/embed-widget-financials.js",{
       colorTheme:"dark",isTransparent:true,displayMode:"regular",width:"100%",height:460,symbol:sym,locale:"en"
     }));
+  }else if(kind==="vol"){
+    tvWrap.appendChild(tvWidget("https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js",{
+      symbol:sym,interval:"D",range:"6M",timezone:"Etc/UTC",theme:"dark",style:"1",locale:"en",
+      width:"100%",height:380,hide_side_toolbar:true,allow_symbol_change:false,save_image:false,
+      studies:[
+        {id:"MASimple@tv-basicstudies",inputs:{length:20}},
+        {id:"BB@tv-basicstudies",inputs:{length:20}},
+        {id:"ATR@tv-basicstudies",inputs:{length:14}}
+      ],
+      support_host:"https://www.tradingview.com"
+    }));
+    const vl=document.createElement("div");vl.className="vol-label";vl.textContent="Market Volatility (VIX) — broad fear gauge";
+    tvWrap.appendChild(vl);
+    tvWrap.appendChild(tvWidget("https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js",{
+      symbol:"CBOE:VIX",interval:"D",range:"6M",timezone:"Etc/UTC",theme:"dark",style:"3",locale:"en",
+      width:"100%",height:200,hide_side_toolbar:true,allow_symbol_change:false,save_image:false,
+      studies:[],support_host:"https://www.tradingview.com"
+    }));
+    const vn=document.createElement("div");vn.className="vol-note";
+    vn.innerHTML="<b>Reading the volatility panel:</b> The top chart shows the stock with <b>Bollinger Bands</b> (expanding bands = rising volatility, squeezing bands = compression before a move), a <b>20-day moving average</b> (trend context), and <b>ATR</b> (average daily range — higher = more volatile). The bottom chart is the <b>VIX</b> (market-wide fear index — spikes = panic, dips = complacency). All data is 15-min delayed via TradingView. These are <i>realized</i> volatility proxies, not options-implied IV.";
+    tvWrap.appendChild(vn);
   }else if(kind==="thesis"){
     const a=ANALYSIS[sym];
     if(a){
@@ -1507,9 +1584,9 @@ function applyFilter(){
 
 /* ---------- Tabs ---------- */
 const tabs=[...document.querySelectorAll("#tabs .tab")];
-const views={layers:document.getElementById("layersView"),opp:document.getElementById("oppView"),flow:document.getElementById("flowView"),rank:document.getElementById("rankView")};
+const views={layers:document.getElementById("layersView"),opp:document.getElementById("oppView"),flow:document.getElementById("flowView"),rank:document.getElementById("rankView"),trump:document.getElementById("trumpView")};
 const layerControls=document.getElementById("layerControls");
-let flowDrawn=false,oppDrawn=false;
+let flowDrawn=false,oppDrawn=false,trumpDrawn=false;
 tabs.forEach(t=>t.addEventListener("click",()=>{
   tabs.forEach(x=>x.classList.remove("active"));
   t.classList.add("active");
@@ -1518,6 +1595,7 @@ tabs.forEach(t=>t.addEventListener("click",()=>{
   layerControls.style.display = t.dataset.view==="layers" ? "" : "none";
   if(t.dataset.view==="flow" && !flowDrawn){drawFlow();flowDrawn=true;}
   if(t.dataset.view==="opp" && !oppDrawn){renderOpps();oppDrawn=true;}
+  if(t.dataset.view==="trump" && !trumpDrawn){renderTrump();trumpDrawn=true;}
 }));
 
 /* ---------- Flow diagram ---------- */
@@ -1696,6 +1774,36 @@ document.querySelectorAll("#oppFilters .opill").forEach(p=>p.addEventListener("c
   document.querySelectorAll("#oppFilters .opill").forEach(x=>x.classList.remove("active"));
   p.classList.add("active");oppTier=p.dataset.tier;applyOppFilter();
 }));
+
+/* ---------- Trump Stocks ---------- */
+function renderTrump(){
+  const grid=document.getElementById("trumpGrid");
+  grid.innerHTML="";
+  TRUMP_STOCKS.forEach(ts=>{
+    const card=document.createElement("div");
+    card.className="trump-card";
+    const a=ANALYSIS[ts.t];
+    const scoreHtml=a?`<span class="conv-tier tier-${a.tier}" style="font-size:10px">${convScore(a)}/100</span>`:"";
+    card.innerHTML=`
+      <div class="tc-top">
+        <span class="tc-name">${ts.n}</span>
+        <span class="tc-tk">${ts.t.split(":")[1]}</span>
+        ${scoreHtml}
+      </div>
+      <div class="tc-reason">${ts.reason}</div>
+      <div class="tc-meta">
+        <span class="tc-src ${ts.src}">${ts.src==="tweet"?"X / Tweet":ts.src==="truth"?"Truth Social":ts.src==="policy"?"Policy":"Mention"}</span>
+        <span class="tc-date">${ts.date}</span>
+      </div>`;
+    // find the full company data from LAYERS for the modal
+    const layerItem=CO_INDEX[ts.t];
+    card.addEventListener("click",()=>{
+      if(layerItem) openModal({n:ts.n, t:ts.t, eco:layerItem.eco, r:ts.reason});
+      else openModal({n:ts.n, t:ts.t, eco:"both", r:ts.reason});
+    });
+    grid.appendChild(card);
+  });
+}
 </script>
 </body>
 </html>
