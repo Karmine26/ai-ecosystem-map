@@ -1483,8 +1483,16 @@ function renderSub(kind){
       ],
       support_host:"https://www.tradingview.com"
     }));
+    const vl=document.createElement("div");vl.className="vol-label";vl.textContent="Market Fear Gauge (VIXY — VIX tracker ETF)";
+    tvWrap.appendChild(vl);
+    tvWrap.appendChild(tvWidget("https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js",{
+      symbols:[["VIX Tracker (VIXY)","AMEX:VIXY|6M"]],chartOnly:false,width:"100%",height:220,locale:"en",colorTheme:"dark",
+      autosize:false,showVolume:false,hideDateRanges:false,scalePosition:"right",scaleMode:"Normal",
+      fontFamily:"-apple-system, sans-serif",valuesTracking:"1",changeMode:"price-and-percent",chartType:"area",
+      backgroundColor:"rgba(18,23,36,1)",gridLineColor:"rgba(35,44,64,0.6)",lineColor:"#f0a98c"
+    }));
     const vn=document.createElement("div");vn.className="vol-note";
-    vn.innerHTML=`<b>Reading the chart:</b> <b>Bollinger Bands</b> — expanding bands = rising volatility, squeezing = compression before a big move. <b>20-day MA</b> — trend context. <b>ATR</b> (bottom pane) — average daily range; higher = more volatile. All data is 15-min delayed via TradingView. These are <i>realized</i> volatility proxies, not options-implied IV.<br><br><b>Market fear gauge:</b> <a href="https://www.tradingview.com/symbols/CBOE-VIX/" target="_blank" rel="noopener" style="color:#f0a98c">View live VIX chart on TradingView ↗</a> — VIX spikes = market panic (often a buy window for quality names), VIX dips = complacency (watch for reversals).`;
+    vn.innerHTML=`<b>Reading the volatility panel:</b> The top chart shows the stock with <b>Bollinger Bands</b> (expanding = rising vol, squeezing = compression before a move), a <b>20-day MA</b> (trend), and <b>ATR</b> (average daily range — higher = more volatile). The bottom chart tracks <b>VIXY</b>, an ETF that mirrors the VIX fear index — spikes = market panic (often a buy window for quality names), dips = complacency (watch for reversals). All data is 15-min delayed via TradingView. These are <i>realized</i> volatility proxies, not options-implied IV.`;
     tvWrap.appendChild(vn);
   }else if(kind==="thesis"){
     const a=ANALYSIS[sym];
